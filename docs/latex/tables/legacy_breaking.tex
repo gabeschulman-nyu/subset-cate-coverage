@@ -1,0 +1,20 @@
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrrrr}
+\toprule
+\textbf{benchmark} & \textbf{$n$} & \textbf{$\rho_S$} & \textbf{$m_S$} & \textbf{nRMSE} & \textbf{cov at $k$=$n$} & \textbf{$k^*$} & \textbf{$k^*/n$} \\
+\midrule
+Hill-A & 1000 & 0.0003 & 1.12 & 0.99 & 0.975 & --- & --- \\
+Friedman & 1000 & 0.0013 & 1.50 & 0.94 & 0.875 & 397 & 0.397 \\
+IHDP & 747 & 0.0420 & 5.43 & 0.07 & 0.600 & 85 & 0.114 \\
+Hill-B & 1000 & 0.0029 & 0.95 & 0.35 & 0.500 & 39 & 0.039 \\
+Kang--Schafer & 1000 & 0.0143 & 1.22 & 2.42 & 0.275 & 14 & 0.014 \\
+ACIC 2016 & 4802 & 0.0202 & 1.63 & 0.36 & 0.200 & 30 & 0.006 \\
+Hill-B heavy-tailed & 1000 & 0.0031 & 0.78 & 0.39 & 0.575 & $<1$ & $<1/n$ \\
+\bottomrule
+\end{tabular}
+\caption{The benchmarks of Fig.~\ref{fig:benchmarks} in numbers, from the same measurements. Throughout, $k$ is the number of units in the subset whose average effect is being reported, not a count of intervals: the $k$ columns give coverage of the aggregate interval at that subset size. Aggregation is the independent composition of \eqref{eq:sigma}, subsets are drawn uniformly at random, and $40$ replications are used per benchmark. $k^*$ is the largest subset that still covers and $k^*/n$ expresses it as a fraction of the sample, which is the comparable quantity across benchmarks of different size. nRMSE is per-unit error over the spread of the true effect, so $1.00$ matches predicting the mean. Rows are ordered by $k^*/n$, which is not the order of $\rho_S$: $m_S$ enters the threshold too, and Hill-B breaks earlier than IHDP on a fourteenth of its $\rho_S$ because it has no cushion.}
+\label{tab:legacy}
+\end{table}
