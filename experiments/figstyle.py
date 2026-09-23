@@ -17,6 +17,8 @@ survive greyscale printing without relying on hue.
 
 from __future__ import annotations
 
+import datetime as _datetime
+
 import matplotlib as mpl
 
 # ICLR single column. Figures are built at this width; nothing is scaled twice.
@@ -92,8 +94,13 @@ def apply():
 def save(fig, path, *, report=True):
     """Save PDF and PNG, strip identifying metadata, and report the size that
     will actually be printed."""
+    # CreationDate is pinned rather than blanked: matplotlib stamps "now"
+    # otherwise, which makes two runs of the same figure differ byte-for-byte
+    # and records when the figure was built. A fixed date makes the PDF
+    # reproducible, so regenerating leaves a clean working tree.
     meta = {"Creator": "", "Producer": "", "Author": "", "Title": "",
-            "Subject": "", "Keywords": ""}
+            "Subject": "", "Keywords": "",
+            "CreationDate": _datetime.datetime(2000, 1, 1)}
     fig.savefig(path, metadata=meta)
     fig.savefig(path.replace(".pdf", ".png"), metadata={"Software": ""})
     if report:
