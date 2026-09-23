@@ -32,6 +32,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import artifacts  # noqa: E402
 import figstyle  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
@@ -46,10 +47,7 @@ IND, COH, SHIP = (figstyle.OKABE_ITO[1], figstyle.OKABE_ITO[3],
 # shows the curve predicting the model the paper is about, not only the arms
 # we trained. Its m and rho come from its own per-unit errors, same as
 # everything else on the panel.
-SHIPPED = ("res_n250", "res_n500", "res_n1000", "res_n2000",
-           "res_hi_clean", "res_hi_ovsoft", "res_ovsoft500") + tuple(
-    f"res_ov{s}_n{n}" for s in ("20", "40", "60")
-    for n in (250, 500, 1000, 2000))
+SHIPPED = artifacts.SCATTER_TAGS
 # Points above R_MAX sit on the flat shoulder of 2*Phi(z*sqrt(R))-1, where the
 # curve is within a few thousandths of 1 and any monotone function through
 # (inf, 1) would fit. They inflate a pooled residual without testing anything,
@@ -63,9 +61,7 @@ THIN = 3
 # shoulder where any monotone curve through (inf, 1) fits. The stratum
 # ladders carry per-k m_S and rho_S measured inside the pool, which is where
 # the informative low-R points come from.
-SHIPPED_LADDERS = ("ladder_propensity_m_n500.json",
-                   "ladder_effect_oracle_m_n500.json",
-                   "ladder_neighbor_ball_m_n500.json")
+SHIPPED_LADDERS = tuple(f"{t}.json" for t in artifacts.SHIPPED_LADDERS)
 # The distinction is whether the aggregate is built by averaging unit-level
 # marginals or from the joint, and the two arms reach the joint by different
 # means: the CNP amortizes the integral into a direct decode, the latent NP
@@ -86,22 +82,14 @@ def collect(recipe_only=True):
     # this very script once added six points to the R<1 count. Identity is
     # taken from content, not from the filename.
     seen = set()
-    for f in sorted(glob.glob("logs/inspec/twopath_*.json")):
-        t = os.path.basename(f)[8:-5]
-        # Any smoke cell, however named: psmoke ran 8 tasks against the
-        # 64 every real cell uses, and was silently entering the pool.
-        if t in ("cputime",) or "smoke" in t:
-            continue
-        j = json.load(open(f))
-        if recipe_only and j.get("recipe_drift"):
-            continue
-                # rho_S and m come from this checkpoint's own unit-level marginals
+    # Which cells count is defined in experiments/artifacts.py, so the
+    # figure and the release build cannot disagree about it.
+    for t, j in artifacts.twopath_cells(recipe_only=recipe_only):
+        # rho_S and m come from this checkpoint's own unit-level marginals
         # (unit_err / unit_sd in two_path_ablation), so R is the ratio that
         # WOULD apply if its aggregate were built from those marginals. Both
         # series are plotted at that same R, which is what makes the vertical
         # gap between them readable as the effect of the aggregation choice.
-        if j.get("arm", "route_b") == "route_c3":
-            continue
         # Deliberately not keyed on pool_frac: cells written before that field
         # existed record None, which would make an older cell and its rerun
         # look distinct. Checkpoint, grid and the realised coverage curve

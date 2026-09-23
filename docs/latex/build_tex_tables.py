@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import csv
 import json
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -13,6 +14,9 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 LOGS = ROOT / "logs/c3read"
+sys.path.insert(0, str(ROOT / "experiments"))
+import artifacts  # noqa: E402
+
 OUT = Path(__file__).resolve().parent / "tables"
 OUT.mkdir(exist_ok=True)
 
@@ -151,9 +155,7 @@ CONSTRUCTION = {
 # exists. The CSV's numbers were close (within 2-7 points, same shape); these
 # are simply reproducible. The unit-level row is the vanilla arm's only path;
 # the other two rows are each arm's own aggregate construction.
-N2SRC = [("n2krepro_nv", "CNP, unit-level", "cov_B"),
-         ("n2krepro_a", "latent NP", "cov_A"),
-         ("n2krepro_b", "CNP", "cov_A")]
+N2SRC = artifacts.N2000_SOURCES
 _n2 = {t: json.loads((ROOT / f"logs/inspec/twopath_{t}.json").read_text())
        for t, _, _ in N2SRC}
 _ks = _n2["n2krepro_nv"]["ks"]
@@ -188,7 +190,7 @@ assert all(_n2[t]["num_tasks"] == 96 for t, _, _ in N2SRC), "task count drift"
 # applied to the clean polynomial family at five sample sizes. One fixed
 # model throughout, so nothing here confounds n with a training choice.
 _NS = []
-for _tag in ("n125", "n250", "n500", "n1000", "n2000"):
+for _tag in artifacts.NSWEEP_TAGS:
     _d = json.loads((ROOT / f"logs/inspec/res_{_tag}.json").read_text())
     _k = _d.get("breaking_k_draw")
     _NS.append([f"{_d['n']}", f"{_d['rho']:.4f}", f"{_d['m']:.1f}",
