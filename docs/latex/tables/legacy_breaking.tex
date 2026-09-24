@@ -4,7 +4,7 @@
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{lrrrrrrr}
 \toprule
-\textbf{benchmark} & \textbf{$n$} & \textbf{$\rho_S$} & \textbf{$m_S$} & \textbf{nRMSE} & \textbf{cov at $k$=$n$} & \textbf{se} & \textbf{$k^*$ ($k^*/n$)} \\
+\textbf{benchmark} & \textbf{$n$} & \textbf{$\rho_S$} & \textbf{$m_S$} & \textbf{nRMSE} & \textbf{cov at $k$=$n$} & \textbf{se} & \textbf{$\hat k^*$ ($\hat k^*/n$)} \\
 \midrule
 Hill-A & 1000 & 0.0003 & 1.12 & 0.99 & 0.97 & 0.02 & --- \\
 Friedman & 1000 & 0.0013 & 1.50 & 0.94 & 0.88 & 0.05 & 397 (40\%) \\
@@ -15,6 +15,6 @@ ACIC 2016 & 4802 & 0.0202 & 1.63 & 0.36 & 0.20 & 0.06 & 30 (0.6\%) \\
 Hill-B heavy-tailed & 1000 & 0.0031 & 0.78 & 0.39 & 0.57 & 0.08 & $<1$ \\
 \bottomrule
 \end{tabular}
-\caption{The benchmarks of Figure~\ref{fig:benchmarks}: shipped CausalPFN checkpoint, unit-level aggregation, subsets drawn uniformly at random, 40 replications per benchmark. $k^*$ is the largest subset for which the interval still covers and $k^*/n$ expresses it as a fraction of the sample. nRMSE is per-unit error divided by the spread of the true effect, so $1.00$ matches predicting the mean. Rows are ordered by $k^*/n$.}
+\caption{The benchmarks of Figure~\ref{fig:benchmarks}: shipped CausalPFN checkpoint, unit-level aggregation, subsets drawn uniformly at random, 40 replications per benchmark. $\hat k^*$ is measured: the subset size at which observed coverage first falls below nominal, interpolated in $\log k$, with $\hat k^*/n$ as a percentage of the sample; ``---'' means coverage never falls below nominal and $<1$ that it is already below at the smallest subset. nRMSE is per-unit error divided by the spread of the true effect, so $1.00$ matches predicting the mean. Rows are ordered by $\hat k^*/n$.}
 \label{tab:legacy}
 \end{table}

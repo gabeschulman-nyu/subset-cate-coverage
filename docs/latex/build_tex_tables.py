@@ -20,6 +20,15 @@ import artifacts  # noqa: E402
 OUT = Path(__file__).resolve().parent / "tables"
 OUT.mkdir(exist_ok=True)
 
+# The tables report the MEASURED crossing. Eq. (kstar) gives the PREDICTED one,
+# 1 + (m_S - 1)/rho_S, and the two differ by up to 40% on the synthetic family,
+# so they must not share a symbol: a reader who plugs a table's rho_S and m_S
+# into the equation would otherwise conclude the theory is off. Every producer
+# (benchmark_ladder.kstar, inspec_stage3.first_below) computes it the same way.
+KHAT = "$\\hat k^*$"
+KHAT_DEF = ("$\\hat k^*$ is measured: the subset size at which observed "
+            "coverage first falls below nominal, interpolated in $\\log k$")
+
 
 def esc(s):
     # Escape only OUTSIDE math mode: a cell like "$X_1>0$" must keep its
@@ -142,15 +151,16 @@ for dgp in ORDER:
                   kb_s])
 (OUT / "legacy_breaking.tex").write_text(latex_table(
     ["benchmark", "$n$", "$\\rho_S$", "$m_S$", "nRMSE", "cov at $k$=$n$",
-     "se", "$k^*$ ($k^*/n$)"], rows4,
+     "se", "$\\hat k^*$ ($\\hat k^*/n$)"], rows4,
     align="lrrrrrrr",
     caption="The benchmarks of Figure~\\ref{fig:benchmarks}: shipped CausalPFN "
             "checkpoint, unit-level aggregation, subsets drawn uniformly at "
-            "random, 40 replications per benchmark. $k^*$ is the largest subset "
-            "for which the interval still covers and $k^*/n$ expresses it as a "
-            "fraction of the sample. nRMSE is per-unit error divided by the spread "
-            "of the true effect, so $1.00$ matches predicting the mean. Rows are "
-            "ordered by $k^*/n$.",
+            "random, 40 replications per benchmark. " + KHAT_DEF + ", with "
+            "$\\hat k^*/n$ as a percentage of the sample; ``---'' means coverage "
+            "never falls below nominal and $<1$ that it is already below at the "
+            "smallest subset. nRMSE is per-unit error divided by the spread of "
+            "the true effect, so $1.00$ matches predicting the mean. Rows are "
+            "ordered by $\\hat k^*/n$.",
     label="tab:legacy"))
 
 
@@ -217,14 +227,15 @@ for _tag in artifacts.NSWEEP_TAGS:
                 f"{_d['coverage_draw'][-1]:.2f} $\\pm$ "
                 f"{_d['cov_se_clustered'][-1]:.2f}"])
 (OUT / "nsweep.tex").write_text(latex_table(
-    ["$n$", "$\\rho_S$", "$m_S$", "$k^*$", "$(n-1)\\rho_S$",
+    ["$n$", "$\\rho_S$", "$m_S$", KHAT, "$(n-1)\\rho_S$",
      "cov at $k$=$n$"],
     _NS, align="lrrrrr",
     caption="The shipped CausalPFN checkpoint on the synthetic family of "
             "Appendix~\\ref{app:dgps} at five sample sizes, with subsets drawn "
             "uniformly at random, 64 tasks and 48 subsets per task. One checkpoint "
             "is used throughout, so no training choice varies down the table. "
-            "$(n-1)\\rho_S$ is the design effect at the full sample.",
+            "$(n-1)\\rho_S$ is the design effect at the full sample. " + KHAT_DEF +
+            "; ``---'' means coverage never falls below nominal.",
     label="tab:nsweep"))
 print("wrote nsweep.tex")
 
@@ -321,15 +332,14 @@ for dgp, fn, tag, rule, rungs in LADDERS:
         seen.add(block)
 (OUT / "subset_selection.tex").write_text(latex_table(
     ["subset", "$\\rho_S$", "$m_S$", "$k_{\\max}$",
-     "$(k_{\\max}\\!-\\!1)\\rho_S$", "$k^*$"],
+     "$(k_{\\max}\\!-\\!1)\\rho_S$", KHAT],
     rows_ss, align="lrrrrr",
     caption="Subset selection rules on the shipped checkpoint at $n=500$, with "
             "intervals formed by unit-level aggregation, over $64$ tasks with "
             "$48$ subsets per task. $k_{\\max}$ is the size "
             "of the pool a rule selects, $(k_{\\max}\\!-\\!1)\\rho_S$ the largest "
-            "design effect reachable within it, and $k^*$ the largest subset for "
-            "which the interval still covers; ``---'' means coverage never falls "
-            "below nominal within the pool.",
+            "design effect reachable within it. " + KHAT_DEF + "; ``---'' means "
+            "coverage never falls below nominal within the pool.",
     label="tab:subset-selection"))
 
 print(f"wrote 5 LaTeX table fragments to {OUT}")

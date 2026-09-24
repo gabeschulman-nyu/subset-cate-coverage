@@ -4,7 +4,7 @@
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{lrrrrr}
 \toprule
-\textbf{$n$} & \textbf{$\rho_S$} & \textbf{$m_S$} & \textbf{$k^*$} & \textbf{$(n-1)\rho_S$} & \textbf{cov at $k$=$n$} \\
+\textbf{$n$} & \textbf{$\rho_S$} & \textbf{$m_S$} & \textbf{$\hat k^*$} & \textbf{$(n-1)\rho_S$} & \textbf{cov at $k$=$n$} \\
 \midrule
 125 & 0.0385 & 7.03 & --- & 5 & 0.95 $\pm$ 0.02 \\
 250 & 0.0422 & 14.25 & --- & 11 & 0.96 $\pm$ 0.02 \\
@@ -13,6 +13,6 @@
 2000 & 0.0230 & 40.08 & 1376 & 46 & 0.93 $\pm$ 0.03 \\
 \bottomrule
 \end{tabular}
-\caption{The shipped CausalPFN checkpoint on the synthetic family of Appendix~\ref{app:dgps} at five sample sizes, with subsets drawn uniformly at random, 64 tasks and 48 subsets per task. One checkpoint is used throughout, so no training choice varies down the table. $(n-1)\rho_S$ is the design effect at the full sample.}
+\caption{The shipped CausalPFN checkpoint on the synthetic family of Appendix~\ref{app:dgps} at five sample sizes, with subsets drawn uniformly at random, 64 tasks and 48 subsets per task. One checkpoint is used throughout, so no training choice varies down the table. $(n-1)\rho_S$ is the design effect at the full sample. $\hat k^*$ is measured: the subset size at which observed coverage first falls below nominal, interpolated in $\log k$; ``---'' means coverage never falls below nominal.}
 \label{tab:nsweep}
 \end{table}

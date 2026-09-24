@@ -4,7 +4,7 @@
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{lrrrrr}
 \toprule
-\textbf{subset} & \textbf{$\rho_S$} & \textbf{$m_S$} & \textbf{$k_{\max}$} & \textbf{$(k_{\max}\!-\!1)\rho_S$} & \textbf{$k^*$} \\
+\textbf{subset} & \textbf{$\rho_S$} & \textbf{$m_S$} & \textbf{$k_{\max}$} & \textbf{$(k_{\max}\!-\!1)\rho_S$} & \textbf{$\hat k^*$} \\
 \midrule
 \multicolumn{6}{l}{\itshape clean, propensity stratum} \\
 all units (baseline) & 0.034 & 21.97 & 500 & 16.8 & 391 \\
@@ -34,6 +34,6 @@ $\wedge\, X_2>0$ & 0.095 & 9.58 & 89 & 8.4 & 58 \\
 $\wedge\, X_3>0$ & 0.176 & 8.44 & 31 & 5.3 & --- \\
 \bottomrule
 \end{tabular}
-\caption{Subset selection rules on the shipped checkpoint at $n=500$, with intervals formed by unit-level aggregation, over $64$ tasks with $48$ subsets per task. $k_{\max}$ is the size of the pool a rule selects, $(k_{\max}\!-\!1)\rho_S$ the largest design effect reachable within it, and $k^*$ the largest subset for which the interval still covers; ``---'' means coverage never falls below nominal within the pool.}
+\caption{Subset selection rules on the shipped checkpoint at $n=500$, with intervals formed by unit-level aggregation, over $64$ tasks with $48$ subsets per task. $k_{\max}$ is the size of the pool a rule selects, $(k_{\max}\!-\!1)\rho_S$ the largest design effect reachable within it. $\hat k^*$ is measured: the subset size at which observed coverage first falls below nominal, interpolated in $\log k$; ``---'' means coverage never falls below nominal within the pool.}
 \label{tab:subset-selection}
 \end{table}

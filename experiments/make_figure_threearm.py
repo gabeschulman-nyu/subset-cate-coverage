@@ -165,12 +165,9 @@ def table():
         "\\textbf{cov, $k_{\\max}$} \\\\\n\\midrule\n"
         + "\n".join(body) +
         "\n\\bottomrule\n\\end{tabular}\n"
-        "\\caption{Three interval constructions applied to the same stored "
-        "unit-level outputs. \\emph{Reported} is the interval as returned, "
-        "\\emph{rescaled} rescales the unit-level variance by $m_S$ before "
-        "composing independently, and \\emph{$+$ design effect} additionally "
-        "multiplies by $1+(k-1)\\rho_S$. Coverage is shown at the smallest and "
-        "largest subset in each cell. Both factors are measured against the "
-        "true effects, so the last construction is an oracle diagnostic rather "
-        "than a deployable interval.}\n"
+        "\\caption{Coverage of the three intervals of "
+        "Appendix~\\ref{app:correction} at the smallest and largest subset in "
+        "each cell. The \\emph{$+$ design effect} interval uses $\\rho_S$ and "
+        "$m_S$ measured against the true effects, so it is an oracle "
+        "diagnostic rather than a deployable interval.}\n"
         "\\label{tab:threearm}\n\\end{table}\n")
