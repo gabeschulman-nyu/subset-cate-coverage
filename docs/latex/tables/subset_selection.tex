@@ -6,23 +6,27 @@
 \toprule
 \textbf{DGP} & \textbf{rule} & \textbf{subset} & \textbf{$\rho_S$} & \textbf{$m_S$} & \textbf{$k_{\max}$} & \textbf{$(k_{\max}\!-\!1)\rho_S$} & \textbf{$k^*$} \\
 \midrule
-clean & propensity stratum & all units & 0.034 & 22.0 & 500 & 16.8 & 391 \\
-clean & propensity stratum & bottom 50\% & 0.069 & 23.2 & 250 & 17.3 & 216 \\
-clean & propensity stratum & bottom 25\% & 0.120 & 14.1 & 125 & 14.9 & 83 \\
-clean & propensity stratum & bottom 10\% & 0.224 & 8.1 & 44 & 9.6 & 34 \\
-clean & nested covariate cell & $X_1>0$ & 0.043 & 22.9 & 177 & 7.7 & --- \\
-clean & nested covariate cell & $\wedge\, X_2>0$ & 0.076 & 23.8 & 89 & 6.7 & --- \\
-clean & nested covariate cell & $\wedge\, X_3>0$ & 0.122 & 26.5 & 31 & 3.7 & --- \\
-clean & covariate neighbourhood & nearest 50\% & 0.075 & 45.5 & 250 & 18.6 & --- \\
-clean & covariate neighbourhood & nearest 25\% & 0.143 & 46.1 & 125 & 17.7 & --- \\
-clean & covariate neighbourhood & nearest 10\% & 0.231 & 36.1 & 44 & 9.9 & --- \\
-soft overlap & propensity stratum & all units & 0.061 & 9.3 & 500 & 30.6 & 99 \\
-soft overlap & propensity stratum & bottom 50\% & 0.076 & 9.7 & 250 & 19.0 & 89 \\
-soft overlap & propensity stratum & bottom 25\% & 0.142 & 6.1 & 125 & 17.6 & 31 \\
-soft overlap & propensity stratum & bottom 10\% & 0.257 & 3.6 & 44 & 11.1 & 8 \\
-soft overlap & nested covariate cell & $X_1>0$ & 0.069 & 9.4 & 177 & 12.1 & 86 \\
-soft overlap & nested covariate cell & $\wedge\, X_2>0$ & 0.095 & 9.6 & 89 & 8.4 & 58 \\
-soft overlap & nested covariate cell & $\wedge\, X_3>0$ & 0.176 & 8.4 & 31 & 5.3 & --- \\
+clean & propensity stratum & all units & 0.034 & 21.97 & 500 & 16.8 & 391 \\
+ &  & bottom 50\% & 0.069 & 23.23 & 250 & 17.3 & 216 \\
+ &  & bottom 25\% & 0.120 & 14.10 & 125 & 14.9 & 83 \\
+ &  & bottom 10\% & 0.224 & 8.07 & 44 & 9.6 & 34 \\
+\addlinespace[3pt]
+clean & nested covariate cell & $X_1>0$ & 0.043 & 22.89 & 177 & 7.7 & --- \\
+ &  & $\wedge\, X_2>0$ & 0.076 & 23.83 & 89 & 6.7 & --- \\
+ &  & $\wedge\, X_3>0$ & 0.122 & 26.46 & 31 & 3.7 & --- \\
+\addlinespace[3pt]
+clean & covariate neighbourhood & nearest 50\% & 0.075 & 45.46 & 250 & 18.6 & --- \\
+ &  & nearest 25\% & 0.143 & 46.08 & 125 & 17.7 & --- \\
+ &  & nearest 10\% & 0.231 & 36.09 & 44 & 9.9 & --- \\
+\addlinespace[3pt]
+soft overlap & propensity stratum & all units & 0.061 & 9.26 & 500 & 30.6 & 99 \\
+ &  & bottom 50\% & 0.076 & 9.72 & 250 & 19.0 & 89 \\
+ &  & bottom 25\% & 0.142 & 6.12 & 125 & 17.6 & 31 \\
+ &  & bottom 10\% & 0.257 & 3.63 & 44 & 11.1 & 8 \\
+\addlinespace[3pt]
+soft overlap & nested covariate cell & $X_1>0$ & 0.069 & 9.41 & 177 & 12.1 & 86 \\
+ &  & $\wedge\, X_2>0$ & 0.095 & 9.58 & 89 & 8.4 & 58 \\
+ &  & $\wedge\, X_3>0$ & 0.176 & 8.44 & 31 & 5.3 & --- \\
 \bottomrule
 \end{tabular}
 \caption{Selection rules on the shipped checkpoint at $n=500$. $k$ is the subset size and $k^*$ the smallest $k$ past which coverage stays below nominal; ``---'' means the rule never crosses within its pool. Aggregation is the independent composition of \eqref{eq:sigma} throughout. Whether a rule breaks is decided by $m_S$ together with the reachable design effect $(k_{\max}\!-\!1)\rho_S$, not by $\rho_S$ alone: narrowing a pool raises $\rho_S$ but shrinks $k_{\max}$, so the product is roughly fixed, and only the propensity ladder also drives $m_S$ down. Nested cells and covariate neighbourhoods reach comparable $\rho_S$ on the clean DGP and never cross; under soft overlap, where $m_S$ is smaller to begin with, the same nested cells do cross.}

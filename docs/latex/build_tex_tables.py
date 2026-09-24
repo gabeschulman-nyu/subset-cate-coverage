@@ -35,7 +35,11 @@ def esc(s):
 def latex_table(headers, rows, align=None, caption="", label="", note=""):
     align = align or ("l" + "r" * (len(headers) - 1))
     head = " & ".join(f"\\textbf{{{h}}}" for h in headers) + " \\\\"
-    body = "\n".join(" & ".join(esc(c) for c in r) + " \\\\" for r in rows)
+    # A None row is a block separator, not data: it renders as vertical space
+    # so a table that groups rows can breathe without a rule through it.
+    body = "\n".join("\\addlinespace[3pt]" if r is None
+                     else " & ".join(esc(c) for c in r) + " \\\\"
+                     for r in rows)
     notestr = f"\n\\vspace{{2pt}}\\footnotesize {note}" if note else ""
     # No automatic \resizebox. Scaling to \textwidth magnifies a narrow table
     # above body font size and shrinks a wide one below it; either way the
@@ -112,13 +116,18 @@ for dgp in ORDER:
         kb_s, kn_s = "$<1$", "$<1/n$"
     else:
         kb_s, kn_s = "---", "---"
+    # The full-sample coverages rest on 40 replications with one subset each,
+    # so they carry a standard error of six to eight points. Printing three
+    # decimals next to that would imply precision the estimate does not have.
+    se = v["cov_se_clustered"][-1]
     rows4.append([DISPLAY[dgp], str(n), f"{rho:.4f}", f"{m:.2f}",
-                  f"{v['nrmse_unit']:.2f}", f"{cov[-1]:.3f}", kb_s, kn_s])
+                  f"{v['nrmse_unit']:.2f}", f"{cov[-1]:.2f}", f"{se:.2f}",
+                  kb_s, kn_s])
 (OUT / "legacy_breaking.tex").write_text(latex_table(
     ["benchmark", "$n$", "$\\rho_S$", "$m_S$", "nRMSE", "cov at $k$=$n$",
-     "$k^*$", "$k^*/n$"], rows4,
-    align="lrrrrrrr",
-    caption="The benchmarks of Fig.~\\ref{fig:benchmarks} in numbers, from the same "
+     "se", "$k^*$", "$k^*/n$"], rows4,
+    align="lrrrrrrrr",
+    caption="The benchmarks of Figure~\\ref{fig:benchmarks} in numbers, from the same "
             "measurements. Throughout, $k$ is the number of units in the subset whose "
             "average effect is being reported, not a count of intervals: the $k$ columns "
             "give coverage of the aggregate interval at that subset size. Aggregation is "
@@ -148,10 +157,11 @@ rows5.append(["\\emph{uncorrelated errors (reference)}", "\\emph{0.707}", "\\emp
 
 # ---- Constructions at n=2000.
 CONSTRUCTION = {
-    "CNP, unit-level": "unit-level, independent",
-    "latent NP": "unit-level, within-draw",
+    "CNP, unit-level": "independent",
+    "latent NP": "within-draw",
     "CNP": "direct decode",
 }
+ARM_DISPLAY = {"CNP, unit-level": "CNP", "latent NP": "latent NP", "CNP": "CNP"}
 # Sourced from the three n=2000 cells scored by two_path_ablation on one task
 # stream, replacing docs/n2000_demonstration.csv whose harness no longer
 # exists. The CSV's numbers were close (within 2-7 points, same shape); these
@@ -165,15 +175,16 @@ assert all(_n2[t]["ks"] == _ks for t, _, _ in N2SRC), "n=2000 cells disagree on 
 assert all(_n2[t]["num_tasks"] == 96 for t, _, _ in N2SRC), "task count drift"
 (OUT / "n2000.tex").write_text(latex_table(
     ["arm", "construction"] + [f"$k$={k}" for k in _ks],
-    [[lab, CONSTRUCTION[lab]] + [f"{c:.3f}" for c in _n2[t][key]]
+    [[ARM_DISPLAY[lab], CONSTRUCTION[lab]] + [f"{c:.2f}" for c in _n2[t][key]]
      for t, lab, key in N2SRC], align="ll" + "r" * len(_ks),
     caption="Coverage of nominal $95\\%$ subset-CATE intervals against subset "
             "size at $n=2000$, by how each arm builds the aggregate. "
-            "``Unit-level, independent\'\' decodes a posterior per unit and "
-            "averages draws across units at independent draw indices; "
-            "``unit-level, within-draw\'\' averages within a shared latent "
-            "draw; ``direct decode\'\' queries the subset effect in one "
-            "forward pass. Only the independent row loses coverage as $k$ "
+            "``Independent\'\' decodes a posterior per unit and averages draws "
+            "across units at independent draw indices; ``within-draw\'\' "
+            "averages those same per-unit decodes within a shared latent draw; "
+            "``direct decode\'\' queries the subset effect in one forward "
+            "pass. The first two are both unit-level. Only the independent row "
+            "loses coverage as $k$ "
             "grows. All three arms share the backbone, head and embedding "
             "width, and are scored on one task stream of $96$ tasks with $24$ "
             "subsets per cell, so the rows differ in construction. They were "
@@ -195,20 +206,27 @@ _NS = []
 for _tag in artifacts.NSWEEP_TAGS:
     _d = json.loads((ROOT / f"logs/inspec/res_{_tag}.json").read_text())
     _k = _d.get("breaking_k_draw")
-    _NS.append([f"{_d['n']}", f"{_d['rho']:.4f}", f"{_d['m']:.1f}",
-                f"{_k:.0f}" if _k == _k else "none",
+    _NS.append([f"{_d['n']}", f"{_d['rho']:.4f}", f"{_d['m']:.2f}",
+                # "---" for a rule that never crosses, as in the other tables
+                f"{_k:.0f}" if _k == _k else "---",
                 f"{(_d['n'] - 1) * _d['rho']:.0f}",
-                f"{_d['coverage_draw'][-1]:.3f}",
-                f"{_d['cov_se_clustered'][-1]:.3f}"])
+                f"{_d['coverage_draw'][-1]:.2f} $\\pm$ "
+                f"{_d['cov_se_clustered'][-1]:.2f}"])
 (OUT / "nsweep.tex").write_text(latex_table(
     ["$n$", "$\\rho_S$", "$m_S$", "$k^*$", "$(n-1)\\rho_S$",
-     "cov at $k$=$n$", "se"],
-    _NS, align="lrrrrrr",
+     "cov at $k$=$n$"],
+    _NS, align="lrrrrr",
     caption="Sample size does not dissolve the problem. The shipped CausalPFN "
             "checkpoint on the synthetic family of Appendix~\\ref{app:dgps} at "
             "five sample sizes, with subsets drawn uniformly at random, $64$ "
             "tasks and $48$ subsets per task. One fixed checkpoint is used "
             "throughout, so no training choice of ours varies down the table. "
+            "This is a separate evaluation from Tables~\\ref{tab:threearm} "
+            "and~\\ref{tab:subset-selection}, on its own task stream and $k$ "
+            "grid, so the $n=500$ row differs from the same cell there in the "
+            "third significant figure ($m_S = 21.90$ against $21.97$, "
+            "$k^* = 398$ against $391$). That gap is Monte Carlo error between "
+            "two independent draws, not a disagreement about the quantity. "
             "$\\rho_S$ falls as $n$ grows, but only as roughly $n^{-0.24}$: a "
             "sixteenfold increase in $n$ divides it by $1.7$, where the "
             "$n^{-1}$ decay that would make the design effect vanish would "
@@ -259,12 +277,21 @@ for dgp, fn, tag, rule, rungs in LADDERS:
         m = float(np.nanmedian(v["m_by_k"]))
         kmax = max(v["ks"])
         kb = v["breaking_k"]
-        cell = (dgp, lab)
-        rows_ss.append([dgp if cell not in seen else "",
-                        rule, lab, f"{rho:.3f}", f"{m:.1f}", f"{kmax}",
+        # DGP and rule are printed once per block. Seventeen rows repeating
+        # "clean / propensity stratum" is most of why this was hard to scan.
+        block = (dgp, rule)
+        first = block not in seen
+        if first and seen:
+            rows_ss.append(None)          # rendered as \addlinespace
+        rows_ss.append([dgp if first else "",
+                        rule if first else "", lab,
+                        f"{rho:.3f}",
+                        # two decimals so the cell shared with Tab. threearm
+                        # prints the same number in both places
+                        f"{m:.2f}", f"{kmax}",
                         f"{(kmax - 1) * rho:.1f}",
                         f"{kb:.0f}" if kb == kb else "---"])
-        seen.add(cell)
+        seen.add(block)
 (OUT / "subset_selection.tex").write_text(latex_table(
     ["DGP", "rule", "subset", "$\\rho_S$", "$m_S$", "$k_{\\max}$",
      "$(k_{\\max}\\!-\\!1)\\rho_S$", "$k^*$"],

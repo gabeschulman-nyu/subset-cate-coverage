@@ -6,11 +6,11 @@
 \toprule
 \textbf{arm} & \textbf{construction} & \textbf{$k$=5} & \textbf{$k$=50} & \textbf{$k$=500} & \textbf{$k$=2000} \\
 \midrule
-CNP, unit-level & unit-level, independent & 0.928 & 0.613 & 0.287 & 0.171 \\
-latent NP & unit-level, within-draw & 0.996 & 0.982 & 0.966 & 0.969 \\
-CNP & direct decode & 0.952 & 0.982 & 0.981 & 0.978 \\
+CNP & independent & 0.93 & 0.61 & 0.29 & 0.17 \\
+latent NP & within-draw & 1.00 & 0.98 & 0.97 & 0.97 \\
+CNP & direct decode & 0.95 & 0.98 & 0.98 & 0.98 \\
 \bottomrule
 \end{tabular}
-\caption{Coverage of nominal $95\%$ subset-CATE intervals against subset size at $n=2000$, by how each arm builds the aggregate. ``Unit-level, independent'' decodes a posterior per unit and averages draws across units at independent draw indices; ``unit-level, within-draw'' averages within a shared latent draw; ``direct decode'' queries the subset effect in one forward pass. Only the independent row loses coverage as $k$ grows. All three arms share the backbone, head and embedding width, and are scored on one task stream of $96$ tasks with $24$ subsets per cell, so the rows differ in construction. They were trained at $n=2000$ outside the frozen recipe used elsewhere in this paper, and at differing learning rates and batch sizes ($10^{-3}$/32, $10^{-3}$/16 and $3\times10^{-4}$/32 for the three rows), so the comparison is not controlled for optimization. The separation it shows spans a factor of five in coverage, which no such difference accounts for, but we report it as corroboration at larger $n$ rather than as a controlled result. Single seed per arm.}
+\caption{Coverage of nominal $95\%$ subset-CATE intervals against subset size at $n=2000$, by how each arm builds the aggregate. ``Independent'' decodes a posterior per unit and averages draws across units at independent draw indices; ``within-draw'' averages those same per-unit decodes within a shared latent draw; ``direct decode'' queries the subset effect in one forward pass. The first two are both unit-level. Only the independent row loses coverage as $k$ grows. All three arms share the backbone, head and embedding width, and are scored on one task stream of $96$ tasks with $24$ subsets per cell, so the rows differ in construction. They were trained at $n=2000$ outside the frozen recipe used elsewhere in this paper, and at differing learning rates and batch sizes ($10^{-3}$/32, $10^{-3}$/16 and $3\times10^{-4}$/32 for the three rows), so the comparison is not controlled for optimization. The separation it shows spans a factor of five in coverage, which no such difference accounts for, but we report it as corroboration at larger $n$ rather than as a controlled result. Single seed per arm.}
 \label{tab:n2000}
 \end{table}

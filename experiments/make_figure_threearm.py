@@ -76,12 +76,12 @@ def panels(all_cells=False):
                     np.array(r["ks"], float), r["coverage"], r["cov_recal"],
                     r["cov_full"], None))
     j = jload("twopath_g1k_s1.json")
-    out.append(("Ours (CNP), $m_S<1$", j["m"], np.array(j["ks"], float),
+    out.append(("CNP (ours)", j["m"], np.array(j["ks"], float),
                 j["cov_B"], j["cov_B_recal"], j["cov_B_full"], None))
     if all_cells:
         with open("logs/c3read/fw_legacy_direct.json") as f:
             lg = json.load(f)["IHDP"]
-        out.append(("IHDP (kurtosis $1.3\\times10^3$)", lg["m"],
+        out.append(("IHDP", lg["m"],
                     np.array(lg["ks"], float), lg["coverage"],
                     lg["cov_recal"], lg["cov_full"], lg["kurtosis"]))
     return out
@@ -123,14 +123,16 @@ if __name__ == "__main__":
 
 
 def table():
-    """Table alternative to the figure. Built from the same rows so the two
+    """Table alternative to the figure, built from the same rows so the two
     cannot disagree.
 
-    Reports each arm at both ends of the k range plus its slope in log k,
-    because the claim the appendix makes about arm C is that it removes the
-    k-dependence -- which a single coverage number at k_max cannot show.
+    Each cell appears three times, once per construction, at both ends of its
+    k range. The slope in log k is computed for the figure but not printed:
+    the two coverage columns already carry the claim, and a slope needs a
+    sentence of definition to be worth a column.
     """
     ps = panels(all_cells=True)
+    arm_label = {"A": "reported", "B": "rescaled", "C": "$+$ design effect"}
     rows = []
     for title, m, ks, a, b, c, _ in ps:
         for key, v in (("A", a), ("B", b), ("C", c)):
@@ -138,39 +140,38 @@ def table():
             ok = ~np.isnan(v)
             if ok.sum() < 2:
                 continue
-            lk = np.log(ks[ok])
-            rows.append((title, m, int(ks[ok][0]), int(ks[ok][-1]), key,
-                         v[ok][0], v[ok][-1],
-                         float(np.polyfit(lk, v[ok], 1)[0])))
-    # Titles are written for matplotlib, where % is literal; LaTeX needs it
-    # escaped or the rest of the row is commented out.
+            rows.append((title, m, int(ks[ok][-1]), arm_label[key],
+                         v[ok][0], v[ok][-1]))
     body = []
-    for i, (t, m, k0, k1, arm, c0, c1, sl) in enumerate(rows):
+    for i, (t, m, k1, arm, c0, c1) in enumerate(rows):
         # One cell spans three rows; name it once so the eye groups them.
-        head = (f"{t.replace('%', chr(92) + '%')} & {m:.2f} & {k0} & {k1}"
-                if i % 3 == 0 else " &  &  & ")
-        body.append(f"{head} & {arm} & {c0:.3f} & {c1:.3f} & {sl:+.4f} \\\\")
+        # Titles are written for matplotlib, where % is literal; LaTeX
+        # needs it escaped or the rest of the row is commented out.
+        safe = t.replace("%", chr(92) + "%")
+        head = (f"{safe} & {m:.2f} & {k1}" if i % 3 == 0 else " &  & ")
+        body.append(f"{head} & {arm} & {c0:.2f} & {c1:.2f} \\\\")
         if i % 3 == 2 and i + 1 < len(rows):
             body.append("\\addlinespace[2pt]")
     return (
         "\\begin{table}[H]\n\\centering\n\\footnotesize\n"
-        "\\setlength{\\tabcolsep}{5pt}\n\\begin{tabular}{lrrrlrrr}\n\\toprule\n"
-        "\\textbf{cell} & \\textbf{$m_S$} & \\textbf{$k_{\\min}$} & "
-        "\\textbf{$k_{\\max}$} & \\textbf{arm} & \\textbf{cov at $k_{\\min}$} & "
-        "\\textbf{cov at $k_{\\max}$} & \\textbf{slope} \\\\\n\\midrule\n"
+        "\\setlength{\\tabcolsep}{5pt}\n\\begin{tabular}{lrrlrr}\n\\toprule\n"
+        "\\textbf{cell} & \\textbf{$m_S$} & \\textbf{$k_{\\max}$} & "
+        "\\textbf{interval} & \\textbf{cov, smallest $k$} & "
+        "\\textbf{cov, $k_{\\max}$} \\\\\n\\midrule\n"
         + "\n".join(body) +
         "\n\\bottomrule\n\\end{tabular}\n"
         "\\caption{Three interval constructions on the same stored unit-level "
-        "outputs, so no retraining is involved and the arms differ only in how "
-        "the reported half-width is formed. A is the interval as reported, B "
-        "rescales the unit-level variance by $m_S$, and C additionally "
-        "multiplies by the design effect $1+(k-1)\\rho_S$. Slope is the "
-        "ordinary least-squares slope of coverage in $\\log k$, which is what "
-        "separates the arms: A and B fall with $k$, while C is flat to within "
-        "a hundredth per decade. B is worse than A at $k_{\\max}$ wherever "
-        "$m_S>1$, since rescaling removes the cushion that was carrying A "
-        "without touching the error structure. C is the oracle interval, "
-        "reported to show that $(\\rho_S, m_S)$ suffice; both are measured "
-        "against the true effects, so it is a diagnostic rather than a "
-        "deployable correction.}\n"
+        "outputs, so no retraining is involved and the constructions differ "
+        "only in how the reported half-width is formed. ``Reported\'\' is the "
+        "interval as the estimator gives it, ``rescaled\'\' divides the "
+        "unit-level variance by $m_S$, and ``$+$ design effect\'\' "
+        "additionally multiplies by $1+(k-1)\\rho_S$. Rescaling alone is worse "
+        "at $k_{\\max}$ than doing nothing wherever $m_S>1$, because it "
+        "removes the cushion that was carrying the reported interval without "
+        "touching the error structure; where $m_S<1$ there is no cushion to "
+        "remove and it helps. Only the third construction holds coverage "
+        "across the range. It is the oracle interval, reported to show that "
+        "$(\\rho_S, m_S)$ suffice: both are measured against the true "
+        "effects, so it is a diagnostic rather than a deployable correction. "
+        "The smallest $k$ is $1$ or $2$ depending on the cell.}\n"
         "\\label{tab:threearm}\n\\end{table}\n")
