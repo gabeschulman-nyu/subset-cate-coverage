@@ -29,6 +29,6 @@ soft overlap & nested covariate cell & $X_1>0$ & 0.069 & 9.41 & 177 & 12.1 & 86 
  &  & $\wedge\, X_3>0$ & 0.176 & 8.44 & 31 & 5.3 & --- \\
 \bottomrule
 \end{tabular}
-\caption{Selection rules on the shipped checkpoint at $n=500$. $k$ is the subset size and $k^*$ the smallest $k$ past which coverage stays below nominal; ``---'' means the rule never crosses within its pool. Aggregation is the independent composition of \eqref{eq:sigma} throughout. Whether a rule breaks is decided by $m_S$ together with the reachable design effect $(k_{\max}\!-\!1)\rho_S$, not by $\rho_S$ alone: narrowing a pool raises $\rho_S$ but shrinks $k_{\max}$, so the product is roughly fixed, and only the propensity ladder also drives $m_S$ down. Nested cells and covariate neighbourhoods reach comparable $\rho_S$ on the clean DGP and never cross; under soft overlap, where $m_S$ is smaller to begin with, the same nested cells do cross.}
+\caption{Subset selection rules on the shipped checkpoint at $n=500$, with intervals formed by independent composition. $k_{\max}$ is the size of the pool a rule selects, $(k_{\max}\!-\!1)\rho_S$ the largest design effect reachable within it, and $k^*$ the largest subset for which the interval still covers; ``---'' means coverage never falls below nominal within the pool.}
 \label{tab:subset-selection}
 \end{table}

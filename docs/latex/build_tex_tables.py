@@ -127,18 +127,13 @@ for dgp in ORDER:
     ["benchmark", "$n$", "$\\rho_S$", "$m_S$", "nRMSE", "cov at $k$=$n$",
      "se", "$k^*$", "$k^*/n$"], rows4,
     align="lrrrrrrrr",
-    caption="The benchmarks of Figure~\\ref{fig:benchmarks} in numbers, from the same "
-            "measurements. Throughout, $k$ is the number of units in the subset whose "
-            "average effect is being reported, not a count of intervals: the $k$ columns "
-            "give coverage of the aggregate interval at that subset size. Aggregation is "
-            "the independent composition of \\eqref{eq:sigma}, subsets are drawn uniformly "
-            "at random, and $40$ replications are used per benchmark. $k^*$ is the largest "
-            "subset that still covers and $k^*/n$ expresses it as a fraction of the sample, "
-            "which is the comparable quantity across benchmarks of different size. nRMSE is "
-            "per-unit error over the spread of the true effect, so $1.00$ matches predicting "
-            "the mean. Rows are ordered by $k^*/n$, which is not the order of $\\rho_S$: "
-            "$m_S$ enters the threshold too, and Hill-B breaks earlier than IHDP on a "
-            "fourteenth of its $\\rho_S$ because it has no cushion.",
+    caption="The benchmarks of Figure~\\ref{fig:benchmarks}: shipped CausalPFN "
+            "checkpoint, independent composition, subsets drawn uniformly at "
+            "random, 40 replications per benchmark. $k^*$ is the largest subset "
+            "for which the interval still covers and $k^*/n$ expresses it as a "
+            "fraction of the sample. nRMSE is per-unit error divided by the spread "
+            "of the true effect, so $1.00$ matches predicting the mean. Rows are "
+            "ordered by $k^*/n$.",
     label="tab:legacy"))
 
 
@@ -177,25 +172,15 @@ assert all(_n2[t]["num_tasks"] == 96 for t, _, _ in N2SRC), "task count drift"
     ["arm", "construction"] + [f"$k$={k}" for k in _ks],
     [[ARM_DISPLAY[lab], CONSTRUCTION[lab]] + [f"{c:.2f}" for c in _n2[t][key]]
      for t, lab, key in N2SRC], align="ll" + "r" * len(_ks),
-    caption="Coverage of nominal $95\\%$ subset-CATE intervals against subset "
-            "size at $n=2000$, by how each arm builds the aggregate. "
-            "``Independent\'\' decodes a posterior per unit and averages draws "
-            "across units at independent draw indices; ``within-draw\'\' "
-            "averages those same per-unit decodes within a shared latent draw; "
-            "``direct decode\'\' queries the subset effect in one forward "
-            "pass. The first two are both unit-level. Only the independent row "
-            "loses coverage as $k$ "
-            "grows. All three arms share the backbone, head and embedding "
-            "width, and are scored on one task stream of $96$ tasks with $24$ "
-            "subsets per cell, so the rows differ in construction. They were "
-            "trained at $n=2000$ outside the frozen recipe used elsewhere in "
-            "this paper, and at differing learning rates and batch sizes "
-            "($10^{-3}$/32, $10^{-3}$/16 and $3\\times10^{-4}$/32 for the "
-            "three rows), so the comparison is not controlled for "
-            "optimization. The separation it shows spans a factor of five in "
-            "coverage, which no such difference accounts for, but we report "
-            "it as corroboration at larger $n$ rather than as a controlled "
-            "result. Single seed per arm.",
+    caption="Coverage of nominal $95\\%$ subset-CATE intervals at $n=2000$, by how "
+            "each arm forms the aggregate, on one stream of 96 tasks with 24 "
+            "subsets per cell. The arms share backbone, head and embedding width "
+            "but were trained outside the recipe of Appendix~\\ref{app:protocol}, "
+            "at different learning rates and batch sizes ($10^{-3}$/32, "
+            "$10^{-3}$/16 and $3\\times10^{-4}$/32), with one seed each. The "
+            "comparison is therefore not controlled for optimization, and we "
+            "report it as corroboration at larger $n$ rather than as a controlled "
+            "result.",
     label="tab:n2000"))
 
 # ---- Sample-size sweep.
@@ -216,28 +201,13 @@ for _tag in artifacts.NSWEEP_TAGS:
     ["$n$", "$\\rho_S$", "$m_S$", "$k^*$", "$(n-1)\\rho_S$",
      "cov at $k$=$n$"],
     _NS, align="lrrrrr",
-    caption="Sample size does not dissolve the problem. The shipped CausalPFN "
-            "checkpoint on the synthetic family of Appendix~\\ref{app:dgps} at "
-            "five sample sizes, with subsets drawn uniformly at random, $64$ "
-            "tasks and $48$ subsets per task. One fixed checkpoint is used "
-            "throughout, so no training choice of ours varies down the table. "
-            "This is a separate evaluation from Tables~\\ref{tab:threearm} "
-            "and~\\ref{tab:subset-selection}, on its own task stream and $k$ "
-            "grid, so the $n=500$ row differs from the same cell there in the "
-            "third significant figure ($m_S = 21.90$ against $21.97$, "
-            "$k^* = 398$ against $391$). That gap is Monte Carlo error between "
-            "two independent draws, not a disagreement about the quantity. "
-            "$\\rho_S$ falls as $n$ grows, but only as roughly $n^{-0.24}$: a "
-            "sixteenfold increase in $n$ divides it by $1.7$, where the "
-            "$n^{-1}$ decay that would make the design effect vanish would "
-            "divide it by $16$. Because the reachable subset size grows with "
-            "$n$ while $\\rho_S$ barely falls, the design effect available at "
-            "the full sample, $(n-1)\\rho_S$, grows from $5$ to $46$ down the "
-            "table. Coverage at $k=n$ nonetheless stays near nominal, because "
-            "$m_S$ grows too, at roughly $n^{0.62}$: the checkpoint's per-unit "
-            "intervals widen relative to its per-unit errors faster than the "
-            "design effect eats the margin. It is the cushion that holds "
-            "coverage up here, not the absence of the correlation.",
+    caption="The shipped CausalPFN checkpoint on the synthetic family of "
+            "Appendix~\\ref{app:dgps} at five sample sizes, with subsets drawn "
+            "uniformly at random, 64 tasks and 48 subsets per task. One checkpoint "
+            "is used throughout, so no training choice varies down the table. "
+            "$(n-1)\\rho_S$ is the design effect at the full sample. This is a "
+            "separate evaluation from Tables~\\ref{tab:threearm} "
+            "and~\\ref{tab:subset-selection}, on its own task stream and $k$ grid.",
     label="tab:nsweep"))
 print("wrote nsweep.tex")
 
@@ -296,16 +266,12 @@ for dgp, fn, tag, rule, rungs in LADDERS:
     ["DGP", "rule", "subset", "$\\rho_S$", "$m_S$", "$k_{\\max}$",
      "$(k_{\\max}\\!-\\!1)\\rho_S$", "$k^*$"],
     rows_ss, align="lllrrrrr",
-    caption="Selection rules on the shipped checkpoint at $n=500$. $k$ is the subset size and "
-            "$k^*$ the smallest $k$ past which coverage stays below nominal; ``---'' means the "
-            "rule never crosses within its pool. Aggregation is the independent composition of "
-            "\\eqref{eq:sigma} throughout. Whether a rule breaks is decided by $m_S$ together with "
-            "the reachable design effect $(k_{\\max}\\!-\\!1)\\rho_S$, not by $\\rho_S$ alone: "
-            "narrowing a pool raises $\\rho_S$ but shrinks $k_{\\max}$, so the product is roughly "
-            "fixed, and only the propensity ladder also drives $m_S$ down. Nested cells and "
-            "covariate neighbourhoods reach comparable $\\rho_S$ on the clean DGP and never cross; "
-            "under soft overlap, where $m_S$ is smaller to begin with, the same nested cells do "
-            "cross.",
+    caption="Subset selection rules on the shipped checkpoint at $n=500$, with "
+            "intervals formed by independent composition. $k_{\\max}$ is the size "
+            "of the pool a rule selects, $(k_{\\max}\\!-\\!1)\\rho_S$ the largest "
+            "design effect reachable within it, and $k^*$ the largest subset for "
+            "which the interval still covers; ``---'' means coverage never falls "
+            "below nominal within the pool.",
     label="tab:subset-selection"))
 
 print(f"wrote 4 LaTeX table fragments to {OUT}")
