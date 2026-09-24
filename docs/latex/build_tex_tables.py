@@ -76,6 +76,8 @@ for arm, dgp, reg, keys in CELLS:
     rows.append([arm, dgp, reg]
                 + [f"{np.mean([r['per_k'][str(k)]['cov_gate'] for r in rs]):.3f}" for k in KS])
 
+INSPEC = ROOT / "logs/inspec"
+
 # ---- The benchmark suite in numbers.
 ORDER = ["HillA", "FriedmanConf", "IHDP", "HillB", "KangSchafer", "ACIC2016",
          "HillBHeavy"]
@@ -221,4 +223,62 @@ for _tag in artifacts.NSWEEP_TAGS:
     label="tab:nsweep"))
 print("wrote nsweep.tex")
 
-print(f"wrote 3 LaTeX table fragments to {OUT}")
+# ---- Selection rules (Appendix D).
+LADDERS = [
+    ("clean", "ladder_propensity_m_n500.json", "n500", "propensity stratum", [
+        ("propensity 1.00", "all units"), ("propensity 0.50", "bottom 50%"),
+        ("propensity 0.25", "bottom 25%"), ("propensity 0.10", "bottom 10%")]),
+    ("clean", "ladder_nested_n500.json", "n500", "nested covariate cell", [
+        ("$X_1$>0", "$X_1>0$"),
+        ("$X_1$>0, $X_2$>0", "$\\wedge\\, X_2>0$"),
+        ("$X_1$>0, $X_2$>0, $X_3$>0", "$\\wedge\\, X_3>0$")]),
+    ("clean", "ladder_neighbor_ball_m_n500.json", "n500", "covariate neighbourhood", [
+        ("neighbor_ball 0.50", "nearest 50%"),
+        ("neighbor_ball 0.25", "nearest 25%"),
+        ("neighbor_ball 0.10", "nearest 10%")]),
+    ("soft overlap", "ladder_propensity_m_ovsoft500.json", "ovsoft500",
+     "propensity stratum", [
+        ("propensity 1.00", "all units"), ("propensity 0.50", "bottom 50%"),
+        ("propensity 0.25", "bottom 25%"), ("propensity 0.10", "bottom 10%")]),
+    ("soft overlap", "ladder_nested_ovsoft500.json", "ovsoft500",
+     "nested covariate cell", [
+        ("$X_1$>0", "$X_1>0$"),
+        ("$X_1$>0, $X_2$>0", "$\\wedge\\, X_2>0$"),
+        ("$X_1$>0, $X_2$>0, $X_3$>0", "$\\wedge\\, X_3>0$")]),
+]
+rows_ss, seen = [], set()
+for dgp, fn, tag, rule, rungs in LADDERS:
+    if not (INSPEC / fn).exists():
+        continue
+    d = json.load(open(INSPEC / fn))[tag]
+    for key, lab in rungs:
+        if key not in d:
+            continue
+        v = d[key]
+        rho = float(np.nanmedian(v["rho_by_k"]))
+        m = float(np.nanmedian(v["m_by_k"]))
+        kmax = max(v["ks"])
+        kb = v["breaking_k"]
+        cell = (dgp, lab)
+        rows_ss.append([dgp if cell not in seen else "",
+                        rule, lab, f"{rho:.3f}", f"{m:.1f}", f"{kmax}",
+                        f"{(kmax - 1) * rho:.1f}",
+                        f"{kb:.0f}" if kb == kb else "---"])
+        seen.add(cell)
+(OUT / "subset_selection.tex").write_text(latex_table(
+    ["DGP", "rule", "subset", "$\\rho_S$", "$m_S$", "$k_{\\max}$",
+     "$(k_{\\max}\\!-\\!1)\\rho_S$", "$k^*$"],
+    rows_ss, align="lllrrrrr",
+    caption="Selection rules on the shipped checkpoint at $n=500$. $k$ is the subset size and "
+            "$k^*$ the smallest $k$ past which coverage stays below nominal; ``---'' means the "
+            "rule never crosses within its pool. Aggregation is the independent composition of "
+            "\\eqref{eq:sigma} throughout. Whether a rule breaks is decided by $m_S$ together with "
+            "the reachable design effect $(k_{\\max}\\!-\\!1)\\rho_S$, not by $\\rho_S$ alone: "
+            "narrowing a pool raises $\\rho_S$ but shrinks $k_{\\max}$, so the product is roughly "
+            "fixed, and only the propensity ladder also drives $m_S$ down. Nested cells and "
+            "covariate neighbourhoods reach comparable $\\rho_S$ on the clean DGP and never cross; "
+            "under soft overlap, where $m_S$ is smaller to begin with, the same nested cells do "
+            "cross.",
+    label="tab:subset-selection"))
+
+print(f"wrote 4 LaTeX table fragments to {OUT}")

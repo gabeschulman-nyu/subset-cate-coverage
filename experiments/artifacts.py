@@ -48,6 +48,16 @@ SHIPPED_LADDERS = ("ladder_propensity_m_n500",
 # Sample sizes in the n-sweep table, in table order.
 NSWEEP_TAGS = ("n125", "n250", "n500", "n1000", "n2000")
 
+# Inputs to the two appendix tables that are not otherwise reachable: the
+# three-arm correction (Appendix C) and the selection-rule ladder (Appendix D).
+# fw_legacy_direct lives under logs/c3read rather than logs/inspec, which is
+# why it is spelled out with its directory.
+APPENDIX_INPUTS = ("logs/inspec/threearm_n500.json",
+                   "logs/inspec/ladder_nested_n500.json",
+                   "logs/inspec/ladder_nested_ovsoft500.json",
+                   "logs/inspec/ladder_propensity_m_ovsoft500.json",
+                   "logs/c3read/fw_legacy_direct.json")
+
 # The n=2000 table: (cell tag, row label, which path that row reports).
 N2000_SOURCES = (("n2krepro_nv", "CNP, unit-level", "cov_B"),
                  ("n2krepro_a", "latent NP", "cov_A"),
@@ -98,4 +108,9 @@ def shipped_paths(root: str = "."):
     paths.update(f"{INSPEC}/{t}.json" for t in SCATTER_TAGS)
     paths.update(f"{INSPEC}/{t}.json" for t in SHIPPED_LADDERS)
     paths.update(f"{INSPEC}/res_{t}.json" for t in NSWEEP_TAGS)
+    paths.update(APPENDIX_INPUTS)
+    # twopath_g1k_s1 feeds the three-arm table's m_S<1 row; it is already in
+    # the pooled set, but named here so dropping it from the pool would not
+    # silently break Appendix C.
+    paths.add(f"{INSPEC}/twopath_g1k_s1.json")
     return sorted(p for p in paths if os.path.exists(os.path.join(root, p)))

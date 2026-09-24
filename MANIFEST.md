@@ -9,10 +9,14 @@ rerunning a generator on the same artifacts gives an identical image.
 
 | artifact | producer | detail |
 |---|---|---|
+| `logs/c3read/fw_legacy_direct.json` | `experiments/fw_legacy_empirical.py` | IHDP legacy read; the heavy-tailed row of the three-arm table |
 | `logs/inspec/benchmark_ladder.json` | `experiments/benchmark_ladder.py` | six benchmarks, 40 reps each |
 | `logs/inspec/ladder_effect_oracle_m_n500.json` | `experiments/subset_selection_coverage.py` | selection-rule ladder, n=500 |
 | `logs/inspec/ladder_neighbor_ball_m_n500.json` | `experiments/subset_selection_coverage.py` | selection-rule ladder, n=500 |
+| `logs/inspec/ladder_nested_n500.json` | `experiments/subset_selection_coverage.py` | selection-rule ladder, n=500 |
+| `logs/inspec/ladder_nested_ovsoft500.json` | `experiments/subset_selection_coverage.py` | selection-rule ladder, n=500 |
 | `logs/inspec/ladder_propensity_m_n500.json` | `experiments/subset_selection_coverage.py` | selection-rule ladder, n=500 |
+| `logs/inspec/ladder_propensity_m_ovsoft500.json` | `experiments/subset_selection_coverage.py` | selection-rule ladder, n=500 |
 | `logs/inspec/res_hi_clean.json` | `experiments/inspec_stage{1,2,3}.py` | shipped CausalPFN, n=1000, 256 tasks |
 | `logs/inspec/res_hi_ovsoft.json` | `experiments/inspec_stage{1,2,3}.py` | shipped CausalPFN, n=1000, 256 tasks |
 | `logs/inspec/res_n1000.json` | `experiments/inspec_stage{1,2,3}.py` | shipped CausalPFN, n=1000, 64 tasks |
@@ -33,6 +37,7 @@ rerunning a generator on the same artifacts gives an identical image.
 | `logs/inspec/res_ov60_n250.json` | `experiments/inspec_stage{1,2,3}.py` | shipped CausalPFN, n=250, 64 tasks |
 | `logs/inspec/res_ov60_n500.json` | `experiments/inspec_stage{1,2,3}.py` | shipped CausalPFN, n=500, 64 tasks |
 | `logs/inspec/res_ovsoft500.json` | `experiments/inspec_stage{1,2,3}.py` | shipped CausalPFN, n=500, 64 tasks |
+| `logs/inspec/threearm_n500.json` | `experiments/subset_selection_coverage.py` | three interval constructions on stored unit-level outputs |
 | `logs/inspec/twopath_blad010_s0.json` | `experiments/two_path_ablation.py` | --tag blad010_s0 --selection neighbor_ball, ckpt sweep_gauss1_s0_E128_S30000 |
 | `logs/inspec/twopath_blad010_s1.json` | `experiments/two_path_ablation.py` | --tag blad010_s1 --selection neighbor_ball, ckpt sweep_gauss1_s1_E128_S30000 |
 | `logs/inspec/twopath_blad010_s2.json` | `experiments/two_path_ablation.py` | --tag blad010_s2 --selection neighbor_ball, ckpt sweep_gauss1_s2_E128_S30000 |
