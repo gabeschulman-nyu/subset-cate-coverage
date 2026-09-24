@@ -42,6 +42,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import artifacts  # noqa: E402
 import figstyle  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
@@ -62,28 +63,41 @@ def jload(p):
 
 
 def panels(all_cells=False):
-    """all_cells=True returns every cell, for the table; the figure keeps the
-    two that span the logical space."""
-    sw = jload("threearm_n500.json")
+    """Rows of Table threearm, each read from the one run that supplies its
+    setting everywhere in the paper (see experiments/artifacts.py).
+
+    all_cells=True returns every row, for the table; the figure keeps the two
+    that span the logical space. The CausalPFN rows come first and our model
+    last.
+    """
     out = []
-    r = sw["n500"]["propensity 1.00"]
-    out.append(("CausalPFN|clean, all units", r["m_bar"],
-                np.array(r["ks"], float), r["coverage"], r["cov_recal"],
-                r["cov_full"], None))
+    # CausalPFN, clean (s=1), whole sample: the n-sweep's n=500 run, the same
+    # run as Table nsweep's n=500 row and Table subset-selection's baseline.
+    r = jload("res_n500.json")
+    out.append(("CausalPFN|clean, all units", r["m"], np.array(r["ks"], float),
+                r["coverage_draw"], r["cov_recal"], r["cov_full"], None))
     if all_cells:
-        r = sw["ovsoft500"]["propensity 0.10"]
-        out.append(("CausalPFN|soft overlap, bottom 10%", r["m_bar"],
-                    np.array(r["ks"], float), r["coverage"], r["cov_recal"],
-                    r["cov_full"], None))
-    j = jload("twopath_g1k_s1.json")
-    out.append(("CNP (ours)|clean, $n{=}1000$", j["m"], np.array(j["ks"], float),
-                j["cov_B"], j["cov_B_recal"], j["cov_B_full"], None))
-    if all_cells:
-        with open("logs/c3read/fw_legacy_direct.json") as f:
-            lg = json.load(f)["IHDP"]
-        out.append(("CausalPFN|IHDP", lg["m"],
-                    np.array(lg["ks"], float), lg["coverage"],
-                    lg["cov_recal"], lg["cov_full"], lg["kurtosis"]))
+        # CausalPFN, soft overlap (s=4), bottom 10% of the propensity: the
+        # rung of Table subset-selection's soft-overlap ladder.
+        v = jload("ladder_propensity_m_ovsoft500.json")["ovsoft500"]["propensity 0.10"]
+        out.append(("CausalPFN|soft overlap, bottom 10%", v["m_bar"],
+                    np.array(v["ks"], float), v["coverage"], v["cov_recal"],
+                    v["cov_full"], None))
+        # CausalPFN on IHDP: the benchmark run of Figure benchmarks and Table
+        # legacy, reporting the same median m_S.
+        b = jload("benchmark_ladder.json")["IHDP"]
+        out.append(("CausalPFN|IHDP", float(np.nanmedian(b["m_by_k"])),
+                    np.array(b["ks"], float), b["coverage"], b["cov_recal"],
+                    b["cov_full"], None))
+    # Our Gaussian-head CNP at n=500: Figure 2's three seeds, averaged. Each
+    # seed's corrections use that seed's own m_S and rho_S; the m_S shown is
+    # the mean of the three.
+    seeds = [jload(f"twopath_{t}.json") for t in artifacts.FIGURE2_CNP]
+    assert all(j["ks"] == seeds[0]["ks"] for j in seeds)
+    avg = lambda key: np.mean([j[key] for j in seeds], axis=0).tolist()
+    out.append(("CNP (ours)|clean", float(np.mean([j["m"] for j in seeds])),
+                np.array(seeds[0]["ks"], float), avg("cov_B"),
+                avg("cov_B_recal"), avg("cov_B_full"), None))
     return out
 
 
@@ -167,7 +181,7 @@ def table():
         "\n\\bottomrule\n\\end{tabular}\n"
         "\\caption{Coverage of the three intervals of "
         "Appendix~\\ref{app:correction} at the smallest and largest subset in "
-        "each cell. The \\emph{$+$ design effect} interval uses $\\rho_S$ and "
-        "$m_S$ measured against the true effects, so it is an oracle "
-        "diagnostic rather than a deployable interval.}\n"
+        "each setting. The \\emph{$+$ design effect} interval uses $\\rho_S$ "
+        "and $m_S$ measured against the true effects and is not available in "
+        "practice.}\n"
         "\\label{tab:threearm}\n\\end{table}\n")

@@ -135,7 +135,8 @@ def collect_shipped():
             continue
         for tag, modes in json.load(open(f)).items():
             for mode, v in modes.items():
-                if not v.get("m_by_k"):
+                # A whole-sample rung is res_n500's setting scored again.
+                if artifacts.is_whole_sample_rung(mode) or not v.get("m_by_k"):
                     continue
                 for k, c, rho, m in zip(v["ks"], v["coverage"], v["rho_by_k"],
                                         v["m_by_k"], strict=True):

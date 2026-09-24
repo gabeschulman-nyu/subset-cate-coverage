@@ -94,6 +94,10 @@ def main():
         ks = [1] + [int(k) for k in
                     np.unique(np.geomspace(2, n, a.k_points).astype(int))]
         cov, se, rho_k, m_k = [], [], [], []
+        # (centre, half-width, target) per interval, so the rescaled and
+        # design-effect intervals of Appendix C come from the SAME intervals.
+        # Storing them consumes no randomness.
+        ivals = {k: [] for k in ks}
         for k in ks:
             per_task, Ek, SDk = [], [], []
             for i in range(T):
@@ -107,6 +111,8 @@ def main():
                     agg = np.take_along_axis(d, sel, axis=1).mean(axis=0)
                     lo, hi = np.quantile(agg, [0.025, 0.975])
                     hits.append(lo <= TRUE[i][idx].mean() <= hi)
+                    ivals[k].append((0.5 * (lo + hi), 0.5 * (hi - lo),
+                                     TRUE[i][idx].mean()))
                 per_task.append(float(np.mean(hits)))
                 Ek.append(Ea[i, idx])
                 SDk.append(SDa[i, idx])
@@ -116,11 +122,24 @@ def main():
             rho_k.append(rho_of(Ek))
             m_k.append(float(np.mean(SDk ** 2) / max(np.mean(Ek ** 2), 1e-18)))
         kx = kstar(ks, cov)
+        # The m_S and rho_S this benchmark reports (Table legacy) are medians
+        # over k; the corrections use those same two numbers at every k.
+        m_rep = float(np.nanmedian(m_k))
+        rho_rep = float(np.nanmedian(rho_k))
+
+        def _cov(fac_of_k):
+            return [float(np.mean([abs(t - c) <= h * fac_of_k(k)
+                                   for c, h, t in ivals[k]])) for k in ks]
+
+        cov_recal = _cov(lambda k: 1.0 / np.sqrt(max(m_rep, 1e-12)))
+        cov_full = _cov(lambda k: np.sqrt(max(1.0 + (k - 1) * rho_rep, 1e-12)
+                                          / max(m_rep, 1e-12)))
         out[dgp] = {"n": n, "reps": T, "ks": ks, "coverage": cov,
                     "cov_se_clustered": se, "rho_by_k": rho_k, "m_by_k": m_k,
                     "rho_full": rho, "m_global": m_glob,
                     "tau_sd": tau_sd, "nrmse_unit": nrmse,
                     "rho_ci": [rho_lo, rho_hi],
+                    "cov_recal": cov_recal, "cov_full": cov_full,
                     "breaking_k": kx}
         rb = float(np.nanmedian(rho_k))
         mb = float(np.nanmedian(m_k))

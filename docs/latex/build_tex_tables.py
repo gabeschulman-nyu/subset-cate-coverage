@@ -13,7 +13,6 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-LOGS = ROOT / "logs/c3read"
 sys.path.insert(0, str(ROOT / "experiments"))
 import artifacts  # noqa: E402
 
@@ -26,8 +25,9 @@ OUT.mkdir(exist_ok=True)
 # into the equation would otherwise conclude the theory is off. Every producer
 # (benchmark_ladder.kstar, inspec_stage3.first_below) computes it the same way.
 KHAT = "$\\hat k^*$"
-KHAT_DEF = ("$\\hat k^*$ is measured: the subset size at which observed "
-            "coverage first falls below nominal, interpolated in $\\log k$")
+KHAT_DEF = ("$\\hat k^*$ is the subset size at which observed coverage "
+            "first falls below nominal, interpolated in $\\log k$")
+KHAT_XREF = "$\\hat k^*$ is defined in Section~\\ref{sec:benchmarks}."
 
 
 def esc(s):
@@ -70,34 +70,6 @@ def latex_table(headers, rows, align=None, caption="", label="", note=""):
             f"\\end{{tabular}}{close_box}{notestr}\n\\caption{{{caption}}}\n\\label{{{label}}}\n\\end{{table}}\n")
 
 
-def jload(n):
-    return json.load(open(LOGS / n))
-
-
-def has(n):
-    return (LOGS / n).exists()
-
-
-KS = (2, 16, 128, 500)
-CELLS = [("latent NP", "poly", "log-uniform", "fw_latent_poly"),
-         ("latent NP", "hetero", "log-uniform", "fw_latent_het"),
-         ("CNP", "poly", "log-uniform", "fw_cnp_poly"),
-         ("CNP", "hetero", "log-uniform", "fw_cnp_het"),
-         ("CNP", "poly", "fixed $k$=50", [f"fw_cur50s{s}_b" for s in (0, 1, 2)]),
-         ("CNP", "poly", "fixed $k$=500", [f"fw_cur500s{s}_b" for s in (0, 1, 2)]),
-         ("TNP", "poly", "log-uniform", "fw_tnp_poly"),
-         ("TNP", "poly", "fixed $k$=50", [f"fw_cur50s{s}_c3" for s in (0, 1, 2)]),
-         ("TNP", "poly", "fixed $k$=500", [f"fw_cur500s{s}_c3" for s in (0, 1, 2)]),
-         ("TNP (MDN)", "poly", "log-uniform", "fw_mdn_tnp_poly"),
-         ("CNP (MDN)", "poly", "log-uniform", "fw_mdn_cnp_poly")]
-rows = []
-for arm, dgp, reg, keys in CELLS:
-    keys = [keys] if isinstance(keys, str) else keys
-    rs = [jload(k + ".json") for k in keys if has(k + ".json")]
-    if not rs:
-        continue
-    rows.append([arm, dgp, reg]
-                + [f"{np.mean([r['per_k'][str(k)]['cov_gate'] for r in rs]):.3f}" for k in KS])
 
 INSPEC = ROOT / "logs/inspec"
 
@@ -163,52 +135,26 @@ for dgp in ORDER:
             "ordered by $\\hat k^*/n$.",
     label="tab:legacy"))
 
-
-PAIRS = [(2, 4), (4, 8), (8, 16), (16, 32), (32, 64), (64, 128), (128, 256), (256, 500)]
-rows5 = []
-for key, lab in (("fw_cnp_poly", "CNP (histogram) / poly"), ("fw_tnp_poly", "TNP (histogram) / poly"),
-                 ("fw_mdn_cnp_poly", "CNP (MDN) / poly"), ("fw_mdn_tnp_poly", "TNP (MDN) / poly"),
-                 ("fw_latent_poly", "latent NP / poly"), ("fw_cnp_het", "CNP (histogram) / hetero")):
-    if not has(key + ".json"):
-        continue
-    r = jload(key + ".json")
-    rat = [np.sqrt(r["per_k"][str(b)]["sigma2_hat"] / r["per_k"][str(a)]["sigma2_hat"]) for a, b in PAIRS]
-    tot = np.sqrt(r["per_k"]["500"]["sigma2_hat"] / r["per_k"]["2"]["sigma2_hat"])
-    rows5.append([lab, f"{np.mean(rat):.3f}", f"{tot:.3f}"])
-rows5.append(["\\emph{uncorrelated errors (reference)}", "\\emph{0.707}", "\\emph{0.063}"])
-
 # ---- Constructions at n=2000.
-CONSTRUCTION = {
-    "CNP, unit-level": "unit-level",
-    "latent NP": "SCM-marginalized",
-    "CNP": "SCM-marginalized",
-}
-ARM_DISPLAY = {"CNP, unit-level": "CNP", "latent NP": "latent NP", "CNP": "CNP"}
 # Sourced from the three n=2000 cells scored by two_path_ablation on one task
-# stream, replacing docs/n2000_demonstration.csv whose harness no longer
-# exists. The CSV's numbers were close (within 2-7 points, same shape); these
-# are simply reproducible. The unit-level row is the vanilla arm's only path;
-# the other two rows are each arm's own aggregate construction.
+# stream. The aggregation a row reports is fixed by which path it reads: the
+# unit-level path (cov_B) or the model's own SCM-marginalized one (cov_A).
+AGGREGATION = {"cov_B": "unit-level", "cov_A": "SCM-marginalized"}
 N2SRC = artifacts.N2000_SOURCES
 _n2 = {t: json.loads((ROOT / f"logs/inspec/twopath_{t}.json").read_text())
        for t, _, _ in N2SRC}
-_ks = _n2["n2krepro_nv"]["ks"]
+_ks = _n2[N2SRC[0][0]]["ks"]
 assert all(_n2[t]["ks"] == _ks for t, _, _ in N2SRC), "n=2000 cells disagree on k"
 assert all(_n2[t]["num_tasks"] == 96 for t, _, _ in N2SRC), "task count drift"
 (OUT / "n2000.tex").write_text(latex_table(
-    ["arm", "aggregation"] + [f"$k$={k}" for k in _ks],
-    [[ARM_DISPLAY[lab], CONSTRUCTION[lab]] + [f"{c:.2f}" for c in _n2[t][key]]
-     for t, lab, key in N2SRC], align="ll" + "r" * len(_ks),
-    caption="Coverage of nominal $95\\%$ subset-CATE intervals at $n=2000$, by how "
-            "each arm forms the aggregate, on one stream of 96 tasks with 24 "
-            "subsets per cell. The arms share backbone, head and embedding "
-            "width; the two CNP rows are separately trained models, not one "
-            "checkpoint queried two ways. All three were trained outside the "
-            "recipe of Appendix~\\ref{app:protocol}, at different learning rates "
-            "and batch sizes ($10^{-3}$/32, $10^{-3}$/16 and $3\\times10^{-4}$/32), "
-            "with one seed each. The comparison is therefore not controlled for "
-            "optimization, and we report it as corroboration at larger $n$ rather "
-            "than as a controlled result.",
+    ["model", "aggregation"] + [f"$k$={k}" for k in _ks],
+    [[model, AGGREGATION[key]] + [f"{c:.2f}" for c in _n2[t][key]]
+     for t, model, key in N2SRC], align="ll" + "r" * len(_ks),
+    caption="Coverage of nominal $95\\%$ subset-CATE intervals at $n=2000$ over "
+            "96 tasks with 24 subsets each. The two CNP rows are separately "
+            "trained models. Each model was trained once, with optimization "
+            "settings that differ from Appendix~\\ref{app:protocol} and from "
+            "each other, so the comparison is not controlled for optimization.",
     label="tab:n2000"))
 
 # ---- Sample-size sweep.
@@ -222,19 +168,19 @@ for _tag in artifacts.NSWEEP_TAGS:
     _NS.append([f"{_d['n']}", f"{_d['rho']:.4f}", f"{_d['m']:.2f}",
                 # "---" for a rule that never crosses, as in the other tables
                 f"{_k:.0f}" if _k == _k else "---",
-                f"{(_d['n'] - 1) * _d['rho']:.0f}",
+                f"{1 + (_d['n'] - 1) * _d['rho']:.0f}",
                 f"{_d['coverage_draw'][-1]:.2f} $\\pm$ "
                 f"{_d['cov_se_clustered'][-1]:.2f}"])
 (OUT / "nsweep.tex").write_text(latex_table(
-    ["$n$", "$\\rho_S$", "$m_S$", KHAT, "$(n-1)\\rho_S$",
+    ["$n$", "$\\rho_S$", "$m_S$", KHAT, "$1+(n-1)\\rho_S$",
      "cov at $k$=$n$"],
     _NS, align="lrrrrr",
     caption="The shipped CausalPFN checkpoint on the synthetic family of "
             "Appendix~\\ref{app:dgps} at five sample sizes, with subsets drawn "
             "uniformly at random, 64 tasks and 48 subsets per task. One checkpoint "
             "is used throughout, so no training choice varies down the table. "
-            "$(n-1)\\rho_S$ is the design effect at the full sample. " + KHAT_DEF +
-            "; ``---'' means coverage never falls below nominal.",
+            "$1+(n-1)\\rho_S$ is the design effect at the full sample; ``---'' "
+            "means coverage never falls below nominal. " + KHAT_XREF,
     label="tab:nsweep"))
 print("wrote nsweep.tex")
 
@@ -305,10 +251,17 @@ for dgp, fn, tag, rule, rungs in LADDERS:
         if key not in d:
             continue
         v = d[key]
-        rho = float(np.nanmedian(v["rho_by_k"]))
-        m = float(np.nanmedian(v["m_by_k"]))
-        kmax = max(v["ks"])
-        kb = v["breaking_k"]
+        if artifacts.is_whole_sample_rung(key):
+            # The unselected baseline is the whole-sample setting, which the
+            # n-sweep run supplies everywhere else (Tables threearm, nsweep);
+            # the ladder's own whole-sample rung is a second run of it.
+            r = json.load(open(INSPEC / f"res_{tag}.json"))
+            rho, m, kmax, kb = r["rho"], r["m"], r["n"], r["breaking_k_draw"]
+        else:
+            rho = float(np.nanmedian(v["rho_by_k"]))
+            m = float(np.nanmedian(v["m_by_k"]))
+            kmax = max(v["ks"])
+            kb = v["breaking_k"]
         # DGP and rule are printed once per block. Seventeen rows repeating
         # "clean / propensity stratum" is most of why this was hard to scan.
         block = (dgp, rule)
@@ -326,19 +279,19 @@ for dgp, fn, tag, rule, rungs in LADDERS:
                         # two decimals so the cell shared with Tab. threearm
                         # prints the same number in both places
                         f"{m:.2f}", f"{kmax}",
-                        f"{(kmax - 1) * rho:.1f}",
+                        f"{1 + (kmax - 1) * rho:.1f}",
                         f"{kb:.0f}" if kb == kb else "---"])
         seen.add(block)
 (OUT / "subset_selection.tex").write_text(latex_table(
     ["subset", "$\\rho_S$", "$m_S$", "$k_{\\max}$",
-     "$(k_{\\max}\\!-\\!1)\\rho_S$", KHAT],
+     "$1+(k_{\\max}\\!-\\!1)\\rho_S$", KHAT],
     rows_ss, align="lrrrrr",
     caption="Subset selection rules on the shipped checkpoint at $n=500$, with "
             "intervals formed by unit-level aggregation, over $64$ tasks with "
-            "$48$ subsets per task. $k_{\\max}$ is the size "
-            "of the pool a rule selects, $(k_{\\max}\\!-\\!1)\\rho_S$ the largest "
-            "design effect reachable within it. " + KHAT_DEF + "; ``---'' means "
-            "coverage never falls below nominal within the pool.",
+            "$48$ subsets per task. $k_{\\max}$ is the size of the pool a rule "
+            "selects and $1+(k_{\\max}\\!-\\!1)\\rho_S$ the largest design "
+            "effect reachable within it; ``---'' means coverage never falls "
+            "below nominal within the pool. " + KHAT_XREF,
     label="tab:subset-selection"))
 
 print(f"wrote 5 LaTeX table fragments to {OUT}")

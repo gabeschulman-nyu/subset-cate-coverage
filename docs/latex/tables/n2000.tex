@@ -4,13 +4,13 @@
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{llrrrr}
 \toprule
-\textbf{arm} & \textbf{aggregation} & \textbf{$k$=5} & \textbf{$k$=50} & \textbf{$k$=500} & \textbf{$k$=2000} \\
+\textbf{model} & \textbf{aggregation} & \textbf{$k$=5} & \textbf{$k$=50} & \textbf{$k$=500} & \textbf{$k$=2000} \\
 \midrule
 CNP & unit-level & 0.93 & 0.61 & 0.29 & 0.17 \\
 latent NP & SCM-marginalized & 1.00 & 0.98 & 0.97 & 0.97 \\
 CNP & SCM-marginalized & 0.95 & 0.98 & 0.98 & 0.98 \\
 \bottomrule
 \end{tabular}
-\caption{Coverage of nominal $95\%$ subset-CATE intervals at $n=2000$, by how each arm forms the aggregate, on one stream of 96 tasks with 24 subsets per cell. The arms share backbone, head and embedding width; the two CNP rows are separately trained models, not one checkpoint queried two ways. All three were trained outside the recipe of Appendix~\ref{app:protocol}, at different learning rates and batch sizes ($10^{-3}$/32, $10^{-3}$/16 and $3\times10^{-4}$/32), with one seed each. The comparison is therefore not controlled for optimization, and we report it as corroboration at larger $n$ rather than as a controlled result.}
+\caption{Coverage of nominal $95\%$ subset-CATE intervals at $n=2000$ over 96 tasks with 24 subsets each. The two CNP rows are separately trained models. Each model was trained once, with optimization settings that differ from Appendix~\ref{app:protocol} and from each other, so the comparison is not controlled for optimization.}
 \label{tab:n2000}
 \end{table}

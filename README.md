@@ -7,6 +7,7 @@ the two boundaries where raw inputs are too large or not ours to ship.
 ## Layout
 
 ```
+configs/                training commands for the six final checkpoints
 src/metadentify/        model and training code
 experiments/            the eval scripts, and the three figure generators
 benchmarks/             vendored loaders for the six benchmarks (no data)
@@ -53,11 +54,12 @@ scikit-learn 1.6.1.
 The measurement artifacts are derived from two upstream sources, neither of
 which is shipped.
 
-**Our own arms.** `experiments/two_path_ablation.py` and
-`experiments/subset_selection_coverage.py` read trained checkpoints. Train them
-with `run-experiment` (see `experiments/exact_polynomial.py` for the task
-family and Appendix B of the paper for the exact configuration); each arm is
-three seeds of 30,000 steps and takes about one to two GPU-hours per seed.
+**Our models.** `experiments/two_path_ablation.py` and
+`experiments/subset_selection_coverage.py` read trained checkpoints. The
+paper uses six: the Gaussian-head CNP and the latent NP, three seeds each.
+`configs/` holds the exact training command and recorded configuration for
+each; every command was verified against `run-experiment`'s parser. Each run
+is 30,000 steps and takes one to two GPU-hours.
 
 **CausalPFN rows.** `experiments/inspec_stage{1,2,3}.py` generate tasks, draw
 per-unit posteriors from the released CausalPFN checkpoint, and score them.
@@ -78,5 +80,6 @@ designs need no download.
 ## What is not here
 
 Training checkpoints, raw posterior draws, the ablation grid that did not reach
-the paper, and the transformer arm that was evaluated and cut. This repository
+the paper, models trained with other output heads, sample sizes or budgets,
+and the transformer arm that was evaluated and cut. This repository
 is the paper and nothing else.

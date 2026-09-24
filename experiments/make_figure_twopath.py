@@ -18,6 +18,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import artifacts  # noqa: E402
 import figstyle  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
@@ -26,8 +27,8 @@ OUT = "docs/figures/twopath.pdf"
 # One legend serves both rows, so its labels must be construction-generic:
 # the SCM-marginalized path is an amortized decode for the CNP and latent resampling
 # for the latent NP, and the caption says which is which.
-ARMS = [(["g1_s0", "g1_s1", "g1_s2"], "CNP"),
-        (["lat_s0", "lat_s1", "lat_s2"], "latent NP")]
+ARMS = [(list(artifacts.FIGURE2_CNP), "CNP"),
+        (list(artifacts.FIGURE2_LATENT), "latent NP")]
 # unit-level path, then the SCM-marginalized path: distinct colour AND dash AND
 # marker, so the panels survive greyscale. "Coherent" is not used anywhere in
 # the paper, so it is not used here either.

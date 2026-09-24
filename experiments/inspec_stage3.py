@@ -60,6 +60,11 @@ def main():
     # the reported interval can be clustered on task, which is the honest
     # unit of independent replication.
     cov_draw, cov_mom, width, cov_by_task, rmse = [], [], [], [], []
+    # (centre, half-width, target) of every percentile interval, per k, so the
+    # rescaled and design-effect intervals of Appendix C can be formed from the
+    # SAME intervals afterwards. Storing them consumes no randomness, so the
+    # reported coverage is unchanged by it.
+    ivals = {k: [] for k in ks}
     for k in ks:
         hit_d, hit_m, w, per_task, err = [], [], [], [], []
         for i in range(T):
@@ -74,6 +79,7 @@ def main():
                 task_hits.append(lo <= truth <= hi)
                 hit_d.append(lo <= truth <= hi)
                 w.append(hi - lo)
+                ivals[k].append((0.5 * (lo + hi), 0.5 * (hi - lo), truth))
                 sd_m = np.sqrt((sig_unit[i, idx] ** 2).sum()) / k
                 point = tauhat[i, idx].mean() / sy[i, 0]
                 hit_m.append(abs(point - truth) <= 1.96 * sd_m)
@@ -88,6 +94,15 @@ def main():
         # falls below it, the estimator is claiming precision it does not have.
         rmse.append(float(np.sqrt(np.mean(np.asarray(err) ** 2))))
 
+    def _cov(fac_of_k):
+        return [float(np.mean([abs(t - c) <= h * fac_of_k(k)
+                               for c, h, t in ivals[k]])) for k in ks]
+
+    # Rescaled: unit-level variances divided by m. Design effect: additionally
+    # multiplied by 1 + (k-1) rho. Both use the m and rho reported below.
+    cov_recal = _cov(lambda k: 1.0 / np.sqrt(max(m, 1e-12)))
+    cov_full = _cov(lambda k: np.sqrt(max(1.0 + (k - 1) * rho, 1e-12) / max(m, 1e-12)))
+
     out = {"tag": a.tag, "n": n, "corr": float(tk["corr"]), "n_sub": a.n_sub,
            "overlap": [float(v) for v in tk["overlap"]],
            "tasks": T, "sigma2": sigma2, "rho": rho, "m": m,
@@ -97,6 +112,7 @@ def main():
            "cov_by_task": cov_by_task,
            "cov_se_clustered": [float(np.std(c, ddof=1) / np.sqrt(len(c)))
                                 for c in cov_by_task],
+           "cov_recal": cov_recal, "cov_full": cov_full,
            "breaking_k_draw": first_below(ks, cov_draw),
            "breaking_k_moment": first_below(ks, cov_mom),
            "propensity_min": float(tk["propensity"].min()),
