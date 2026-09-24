@@ -201,15 +201,14 @@ assert all(_n2[t]["num_tasks"] == 96 for t, _, _ in N2SRC), "task count drift"
      for t, lab, key in N2SRC], align="ll" + "r" * len(_ks),
     caption="Coverage of nominal $95\\%$ subset-CATE intervals at $n=2000$, by how "
             "each arm forms the aggregate, on one stream of 96 tasks with 24 "
-            "subsets per cell. The arms share backbone, head and embedding width "
-            "but were trained outside the recipe of Appendix~\\ref{app:protocol}, "
-            "at different learning rates and batch sizes ($10^{-3}$/32, "
-            "$10^{-3}$/16 and $3\\times10^{-4}$/32), with one seed each. The "
-            "two CNP rows are separately trained models, not one checkpoint "
-            "queried two ways. The comparison is therefore not controlled "
-            "for optimization, and we "
-            "report it as corroboration at larger $n$ rather than as a controlled "
-            "result.",
+            "subsets per cell. The arms share backbone, head and embedding "
+            "width; the two CNP rows are separately trained models, not one "
+            "checkpoint queried two ways. All three were trained outside the "
+            "recipe of Appendix~\\ref{app:protocol}, at different learning rates "
+            "and batch sizes ($10^{-3}$/32, $10^{-3}$/16 and $3\\times10^{-4}$/32), "
+            "with one seed each. The comparison is therefore not controlled for "
+            "optimization, and we report it as corroboration at larger $n$ rather "
+            "than as a controlled result.",
     label="tab:n2000"))
 
 # ---- Sample-size sweep.
