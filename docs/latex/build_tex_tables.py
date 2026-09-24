@@ -30,7 +30,7 @@ OUT.mkdir(exist_ok=True)
 KHAT = "$\\hat k^*$"
 KHAT_DEF = ("$\\hat k^*$ is the subset size at which observed coverage "
             "first falls below nominal, interpolated in $\\log k$")
-KHAT_XREF = "$\\hat k^*$ is defined in Section~\\ref{sec:benchmarks}."
+KHAT_XREF = "$\\hat k^*$ is defined in Section~\\ref{sec:expsetup}."
 
 
 def esc(s):
@@ -373,8 +373,9 @@ for _tag in artifacts.NSWEEP_TAGS:
     _NS, align="lrrrrr",
     caption="CausalPFN on the synthetic family of "
             "Appendix~\\ref{app:dgps} at five sample sizes, with subsets drawn "
-            "uniformly at random, 64 tasks and 48 subsets per task. One checkpoint "
-            "is used throughout, so no training choice varies down the table. "
+            "uniformly at random, 64 tasks and 48 subsets per task. The same "
+            "CausalPFN model is used throughout, so no training choice varies "
+            "down the table. "
             "$1+(n-1)\\rho_S$ is the design effect at the full sample; ``---'' "
             "means coverage never falls below nominal. " + KHAT_XREF,
     label="tab:nsweep"))
