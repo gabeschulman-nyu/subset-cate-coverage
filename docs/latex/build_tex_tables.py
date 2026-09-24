@@ -221,22 +221,22 @@ print("wrote benchmarks.tex")
 
 # ---- Selection rules (Appendix D).
 LADDERS = [
-    ("clean", "ladder_propensity_m_n500.json", "n500", "propensity stratum", [
+    ("$s=1$", "ladder_propensity_m_n500.json", "n500", "propensity stratum", [
         ("propensity 1.00", "all units"), ("propensity 0.50", "bottom 50%"),
         ("propensity 0.25", "bottom 25%"), ("propensity 0.10", "bottom 10%")]),
-    ("clean", "ladder_nested_n500.json", "n500", "nested covariate cell", [
+    ("$s=1$", "ladder_nested_n500.json", "n500", "nested covariate cell", [
         ("$X_1$>0", "$X_1>0$"),
         ("$X_1$>0, $X_2$>0", "$\\wedge\\, X_2>0$"),
         ("$X_1$>0, $X_2$>0, $X_3$>0", "$\\wedge\\, X_3>0$")]),
-    ("clean", "ladder_neighbor_ball_m_n500.json", "n500", "covariate neighbourhood", [
+    ("$s=1$", "ladder_neighbor_ball_m_n500.json", "n500", "covariate neighbourhood", [
         ("neighbor_ball 0.50", "nearest 50%"),
         ("neighbor_ball 0.25", "nearest 25%"),
         ("neighbor_ball 0.10", "nearest 10%")]),
-    ("soft overlap", "ladder_propensity_m_ovsoft500.json", "ovsoft500",
+    ("$s=4$", "ladder_propensity_m_ovsoft500.json", "ovsoft500",
      "propensity stratum", [
         ("propensity 1.00", "all units"), ("propensity 0.50", "bottom 50%"),
         ("propensity 0.25", "bottom 25%"), ("propensity 0.10", "bottom 10%")]),
-    ("soft overlap", "ladder_nested_ovsoft500.json", "ovsoft500",
+    ("$s=4$", "ladder_nested_ovsoft500.json", "ovsoft500",
      "nested covariate cell", [
         ("$X_1$>0", "$X_1>0$"),
         ("$X_1$>0, $X_2$>0", "$\\wedge\\, X_2>0$"),

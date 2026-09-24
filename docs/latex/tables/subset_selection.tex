@@ -6,29 +6,29 @@
 \toprule
 \textbf{subset} & \textbf{$\rho_S$} & \textbf{$m_S$} & \textbf{$k_{\max}$} & \textbf{$1+(k_{\max}\!-\!1)\rho_S$} & \textbf{$\hat k^*$} \\
 \midrule
-\multicolumn{6}{l}{\itshape clean, propensity stratum} \\
+\multicolumn{6}{l}{\itshape $s=1$, propensity stratum} \\
 all units (baseline) & 0.034 & 21.90 & 500 & 17.9 & 398 \\
 bottom 50\% & 0.069 & 23.23 & 250 & 18.3 & 216 \\
 bottom 25\% & 0.120 & 14.10 & 125 & 15.9 & 83 \\
 bottom 10\% & 0.224 & 8.07 & 44 & 10.6 & 34 \\
 \addlinespace[3pt]
-\multicolumn{6}{l}{\itshape clean, nested covariate cell} \\
+\multicolumn{6}{l}{\itshape $s=1$, nested covariate cell} \\
 $X_1>0$ & 0.043 & 22.89 & 177 & 8.7 & --- \\
 $\wedge\, X_2>0$ & 0.076 & 23.83 & 89 & 7.7 & --- \\
 $\wedge\, X_3>0$ & 0.122 & 26.46 & 31 & 4.7 & --- \\
 \addlinespace[3pt]
-\multicolumn{6}{l}{\itshape clean, covariate neighbourhood} \\
+\multicolumn{6}{l}{\itshape $s=1$, covariate neighbourhood} \\
 nearest 50\% & 0.075 & 45.46 & 250 & 19.6 & --- \\
 nearest 25\% & 0.143 & 46.08 & 125 & 18.7 & --- \\
 nearest 10\% & 0.231 & 36.09 & 44 & 10.9 & --- \\
 \addlinespace[3pt]
-\multicolumn{6}{l}{\itshape soft overlap, propensity stratum} \\
+\multicolumn{6}{l}{\itshape $s=4$, propensity stratum} \\
 all units (baseline) & 0.059 & 9.20 & 500 & 30.4 & 93 \\
 bottom 50\% & 0.076 & 9.72 & 250 & 20.0 & 89 \\
 bottom 25\% & 0.142 & 6.12 & 125 & 18.6 & 31 \\
 bottom 10\% & 0.257 & 3.63 & 44 & 12.1 & 8 \\
 \addlinespace[3pt]
-\multicolumn{6}{l}{\itshape soft overlap, nested covariate cell} \\
+\multicolumn{6}{l}{\itshape $s=4$, nested covariate cell} \\
 $X_1>0$ & 0.069 & 9.41 & 177 & 13.1 & 86 \\
 $\wedge\, X_2>0$ & 0.095 & 9.58 & 89 & 9.4 & 58 \\
 $\wedge\, X_3>0$ & 0.176 & 8.44 & 31 & 6.3 & --- \\

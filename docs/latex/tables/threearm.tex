@@ -6,11 +6,11 @@
 \toprule
 \textbf{model} & \textbf{data} & \textbf{$m_S$} & \textbf{$k_{\max}$} & \textbf{interval} & \textbf{cov, smallest $k$} & \textbf{cov, $k_{\max}$} \\
 \midrule
-CausalPFN & clean, all units & 21.90 & 500 & reported & 1.00 & 0.94 \\
+CausalPFN & $s=1$, all units & 21.90 & 500 & reported & 1.00 & 0.94 \\
  &  &  &  & rescaled & 0.91 & 0.41 \\
  &  &  &  & $+$ design effect & 0.91 & 0.93 \\
 \addlinespace[2pt]
-CausalPFN & soft overlap, bottom 10\% & 3.63 & 44 & reported & 0.99 & 0.79 \\
+CausalPFN & $s=4$, bottom 10\% & 3.63 & 44 & reported & 0.99 & 0.79 \\
  &  &  &  & rescaled & 0.96 & 0.58 \\
  &  &  &  & $+$ design effect & 0.96 & 0.93 \\
 \addlinespace[2pt]
@@ -18,7 +18,7 @@ CausalPFN & IHDP & 5.43 & 747 & reported & 1.00 & 0.60 \\
  &  &  &  & rescaled & 0.98 & 0.25 \\
  &  &  &  & $+$ design effect & 0.98 & 0.93 \\
 \addlinespace[2pt]
-CNP (ours) & clean & 1.87 & 500 & reported & 0.96 & 0.29 \\
+CNP (ours) & $s=1$ & 1.87 & 500 & reported & 0.96 & 0.29 \\
  &  &  &  & rescaled & 0.89 & 0.22 \\
  &  &  &  & $+$ design effect & 0.91 & 0.94 \\
 \bottomrule

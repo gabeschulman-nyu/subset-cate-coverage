@@ -74,13 +74,13 @@ def panels(all_cells=False):
     # CausalPFN, clean (s=1), whole sample: the n-sweep's n=500 run, the same
     # run as Table nsweep's n=500 row and Table subset-selection's baseline.
     r = jload("res_n500.json")
-    out.append(("CausalPFN|clean, all units", r["m"], np.array(r["ks"], float),
+    out.append(("CausalPFN|$s=1$, all units", r["m"], np.array(r["ks"], float),
                 r["coverage_draw"], r["cov_recal"], r["cov_full"], None))
     if all_cells:
         # CausalPFN, soft overlap (s=4), bottom 10% of the propensity: the
         # rung of Table subset-selection's soft-overlap ladder.
         v = jload("ladder_propensity_m_ovsoft500.json")["ovsoft500"]["propensity 0.10"]
-        out.append(("CausalPFN|soft overlap, bottom 10%", v["m_bar"],
+        out.append(("CausalPFN|$s=4$, bottom 10%", v["m_bar"],
                     np.array(v["ks"], float), v["coverage"], v["cov_recal"],
                     v["cov_full"], None))
         # CausalPFN on IHDP: the benchmark run of Figure benchmarks and Table
@@ -95,7 +95,7 @@ def panels(all_cells=False):
     seeds = [jload(f"twopath_{t}.json") for t in artifacts.FIGURE2_CNP]
     assert all(j["ks"] == seeds[0]["ks"] for j in seeds)
     avg = lambda key: np.mean([j[key] for j in seeds], axis=0).tolist()
-    out.append(("CNP (ours)|clean", float(np.mean([j["m"] for j in seeds])),
+    out.append(("CNP (ours)|$s=1$", float(np.mean([j["m"] for j in seeds])),
                 np.array(seeds[0]["ks"], float), avg("cov_B"),
                 avg("cov_B_recal"), avg("cov_B_full"), None))
     return out

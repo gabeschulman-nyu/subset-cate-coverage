@@ -1,4 +1,4 @@
-"""twopath.pdf: one checkpoint, two query paths, both arms in one 2x2.
+"""twopath.pdf: one checkpoint, two query paths, both arms in one row.
 
 Rows are the arm (CNP, latent NP), columns are what is measured (reported
 interval width, coverage). x is shared down each column and y across each row,
@@ -49,11 +49,18 @@ def series(tags, key):
 
 def main():
     figstyle.apply()
-    fig, axes = plt.subplots(2, 2, figsize=(figstyle.WIDTH, 4.3),
-                             sharex="col")
-    rows = []
-    for r, (tags, short) in enumerate(ARMS):
-        axw, axc = axes[r]
+    plt.rcParams.update({"axes.labelsize": 8, "xtick.labelsize": 8,
+                         "ytick.labelsize": 8, "legend.fontsize": 8,
+                         "lines.markersize": 2.6})
+    # One row: each model gets a subfigure holding its width and coverage
+    # panels, so its name can sit centred over exactly that pair.
+    fig = plt.figure(figsize=(figstyle.WIDTH, 1.7))
+    subs = fig.subfigures(1, 2, wspace=0.02)
+    rows, handles, pairs = [], None, []
+    for sub, (tags, short) in zip(subs, ARMS):
+        axw, axc = sub.subplots(1, 2)
+        pairs.append((sub, axw, axc))
+        sub.suptitle(short, fontsize=9)
         ks, wI, _ = series(tags, "width_B")
         _, wJ, _ = series(tags, "width_A")
         ref = wI[0] * np.sqrt(ks[0] / ks)
@@ -65,32 +72,40 @@ def main():
                  label="SCM-marginalized aggregation")
         axw.set_xscale("log")
         axw.set_yscale("log")
-        axw.set_ylabel(f"{short}\nreported width")
+        axw.set_ylabel("width")
+        handles = axw.get_legend_handles_labels()
 
         ks, cI, sI = series(tags, "cov_B")
         _, cJ, sJ = series(tags, "cov_A")
-        for c, s, col, dd, mk in ((cI, sI, C_MARG, D_MARG, M_MARG),
-                                  (cJ, sJ, C_JOINT, D_JOINT, M_JOINT)):
+        for c, sd, col, dd, mk in ((cI, sI, C_MARG, D_MARG, M_MARG),
+                                   (cJ, sJ, C_JOINT, D_JOINT, M_JOINT)):
             axc.plot(ks, c, color=col, ls=dd, marker=mk, zorder=4)
-            axc.fill_between(ks, c - 1.96 * s, c + 1.96 * s, color=col,
+            axc.fill_between(ks, c - 1.96 * sd, c + 1.96 * sd, color=col,
                              alpha=0.13, lw=0, zorder=2)
         axc.axhline(0.95, color=figstyle.GREY, lw=0.8, ls=(0, (4, 2)), zorder=1)
         axc.set_xscale("log")
         axc.set_ylim(0.0, 1.05)
         axc.set_ylabel("coverage")
+        for ax in (axw, axc):
+            ax.set_xlabel("subset size $k$")
         bI = np.polyfit(np.log(ks), np.log(wI), 1)[0]
         bJ = np.polyfit(np.log(ks), np.log(wJ), 1)[0]
         rows.append((short, bI, bJ, cI[-1], cJ[-1]))
 
-    for ax in axes[1]:
-        ax.set_xlabel("subset size $k$")
-    axes[0][0].legend(loc="lower left")
-
+    # One legend for all four panels, above them.
+    fig.legend(*handles, loc="outside upper center", ncol=3, frameon=False,
+               handlelength=2.4, columnspacing=1.4)
+    # Centre each model's name over its two axes rather than over its whole
+    # subfigure, whose left margin holds the y label and pulls the centre left.
+    fig.canvas.draw()
+    for sub, axw, axc in pairs:
+        mid = 0.5 * (axw.get_window_extent().x0 + axc.get_window_extent().x1)
+        sub._suptitle.set_x(sub.transSubfigure.inverted().transform((mid, 0))[0])
     figstyle.save(fig, OUT)
     print(f"  {'arm':10s} {'width exp marg':>14s} {'width exp coh':>13s} "
           f"{'cov marg':>9s} {'cov coh':>8s}")
-    for s, bI, bJ, cI, cJ in rows:
-        print(f"  {s:10s} {bI:+14.3f} {bJ:+13.3f} {cI:9.3f} {cJ:8.3f}")
+    for s_, bI, bJ, cI, cJ in rows:
+        print(f"  {s_:10s} {bI:+14.3f} {bJ:+13.3f} {cI:9.3f} {cJ:8.3f}")
 
 
 if __name__ == "__main__":
