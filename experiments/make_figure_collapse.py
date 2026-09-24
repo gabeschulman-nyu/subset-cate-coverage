@@ -68,8 +68,12 @@ SHIPPED_LADDERS = tuple(f"{t}.json" for t in artifacts.SHIPPED_LADDERS)
 # resamples the shared latent and averages within each draw. "Coherent" is not
 # used anywhere in the paper, so it is not used here.
 # (marker, short name for the marginal series, full name for our series)
-ARM_MARK = {"route_a": ("o", "latent NP", "latent NP resampling"),
-            "route_b": ("s", "CNP", "CNP amortized decode")}
+# One name per arm. The legend is grouped by how the aggregate is formed,
+# using the same two names as Fig. twopath -- unit-level and SCM-marginalized
+# -- so a reader moving between the figures is not asked to learn a second
+# vocabulary for the same distinction.
+ARM_MARK = {"route_a": ("o", "latent NP"),
+            "route_b": ("s", "CNP")}
 Z = 1.96
 
 
@@ -154,9 +158,10 @@ def main():
     ax.plot(xs, 2 * norm.cdf(Z * np.sqrt(xs)) - 1, color="k", lw=1.3, zorder=6,
             label=r"$2\Phi(z\sqrt{R})-1$")
 
-    for arm, (mk, short, full) in ARM_MARK.items():
-        for msk, col, lab, face in ((ind, IND, f"unit-level: {short}", None),
-                                    (~ind, COH, f"{full} (ours)", "none")):
+    for arm, (mk, short) in ARM_MARK.items():
+        for msk, col, lab, face in (
+                (ind, IND, f"unit-level: {short}", None),
+                (~ind, COH, f"SCM-marginalized: {short}", "none")):
             s = msk & np.array([r["arm"] == arm for r in rows])
             if not s.any():
                 continue
@@ -175,7 +180,7 @@ def main():
         ax.scatter([r["R"] for r in sh], [r["cov"] for r in sh], s=11,
                    marker="D", alpha=0.85, zorder=5, color=SHIP,
                    edgecolor="white", linewidth=0.4,
-                   label="unit-level: CausalPFN (shipped)")
+                   label="unit-level: CausalPFN")
 
     ax.axhline(0.95, color=GREY, lw=0.8, ls=(0, (4, 2)), zorder=1)
     ax.axvline(1.0, color=GREY, lw=0.8, ls=(0, (1, 1.5)), zorder=1)

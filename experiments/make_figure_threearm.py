@@ -67,21 +67,21 @@ def panels(all_cells=False):
     sw = jload("threearm_n500.json")
     out = []
     r = sw["n500"]["propensity 1.00"]
-    out.append(("CausalPFN, clean, all units", r["m_bar"],
+    out.append(("CausalPFN|clean, all units", r["m_bar"],
                 np.array(r["ks"], float), r["coverage"], r["cov_recal"],
                 r["cov_full"], None))
     if all_cells:
         r = sw["ovsoft500"]["propensity 0.10"]
-        out.append(("CausalPFN, soft overlap, bottom 10%", r["m_bar"],
+        out.append(("CausalPFN|soft overlap, bottom 10%", r["m_bar"],
                     np.array(r["ks"], float), r["coverage"], r["cov_recal"],
                     r["cov_full"], None))
     j = jload("twopath_g1k_s1.json")
-    out.append(("CNP (ours)", j["m"], np.array(j["ks"], float),
+    out.append(("CNP (ours)|clean, $n{=}1000$", j["m"], np.array(j["ks"], float),
                 j["cov_B"], j["cov_B_recal"], j["cov_B_full"], None))
     if all_cells:
         with open("logs/c3read/fw_legacy_direct.json") as f:
             lg = json.load(f)["IHDP"]
-        out.append(("IHDP", lg["m"],
+        out.append(("CausalPFN|IHDP", lg["m"],
                     np.array(lg["ks"], float), lg["coverage"],
                     lg["cov_recal"], lg["cov_full"], lg["kurtosis"]))
     return out
@@ -147,15 +147,20 @@ def table():
         # One cell spans three rows; name it once so the eye groups them.
         # Titles are written for matplotlib, where % is literal; LaTeX
         # needs it escaped or the rest of the row is commented out.
-        safe = t.replace("%", chr(92) + "%")
-        head = (f"{safe} & {m:.2f} & {k1}" if i % 3 == 0 else " &  & ")
+        # "model|data": one column each, so a row never leaves the reader
+        # guessing which model produced it or which data it ran on.
+        model, data = t.split("|")
+        safe = data.replace("%", chr(92) + "%")
+        head = (f"{model} & {safe} & {m:.2f} & {k1}"
+                if i % 3 == 0 else " &  &  & ")
         body.append(f"{head} & {arm} & {c0:.2f} & {c1:.2f} \\\\")
         if i % 3 == 2 and i + 1 < len(rows):
             body.append("\\addlinespace[2pt]")
     return (
         "\\begin{table}[H]\n\\centering\n\\footnotesize\n"
-        "\\setlength{\\tabcolsep}{5pt}\n\\begin{tabular}{lrrlrr}\n\\toprule\n"
-        "\\textbf{cell} & \\textbf{$m_S$} & \\textbf{$k_{\\max}$} & "
+        "\\setlength{\\tabcolsep}{5pt}\n\\begin{tabular}{llrrlrr}\n\\toprule\n"
+        "\\textbf{model} & \\textbf{data} & \\textbf{$m_S$} & "
+        "\\textbf{$k_{\\max}$} & "
         "\\textbf{interval} & \\textbf{cov, smallest $k$} & "
         "\\textbf{cov, $k_{\\max}$} \\\\\n\\midrule\n"
         + "\n".join(body) +

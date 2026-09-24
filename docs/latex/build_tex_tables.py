@@ -37,9 +37,19 @@ def latex_table(headers, rows, align=None, caption="", label="", note=""):
     head = " & ".join(f"\\textbf{{{h}}}" for h in headers) + " \\\\"
     # A None row is a block separator, not data: it renders as vertical space
     # so a table that groups rows can breathe without a rule through it.
-    body = "\n".join("\\addlinespace[3pt]" if r is None
-                     else " & ".join(esc(c) for c in r) + " \\\\"
-                     for r in rows)
+    ncol = len(headers)
+
+    def render(r):
+        if r is None:                       # block separator
+            return "\\addlinespace[3pt]"
+        if isinstance(r, tuple) and r and r[0] == "GROUP":
+            # A group header spanning the table, so the grouping is visible
+            # without spending a column on it.
+            return (f"\\multicolumn{{{ncol}}}{{l}}{{\\itshape {esc(r[1])}}}"
+                    " \\\\")
+        return " & ".join(esc(c) for c in r) + " \\\\"
+
+    body = "\n".join(render(r) for r in rows)
     notestr = f"\n\\vspace{{2pt}}\\footnotesize {note}" if note else ""
     # No automatic \resizebox. Scaling to \textwidth magnifies a narrow table
     # above body font size and shrinks a wide one below it; either way the
@@ -110,25 +120,32 @@ for dgp in ORDER:
     # nominal, while Hill-B-heavy is already below it at k=1 and so has no
     # safe subset size at all. Printing "---" for both hides that, so the
     # second case is marked "$<1$".
+    # k* and k*/n restate one fact, so they share a column as "85 (0.11)".
+    # That also retires the awkward "<1/n" for the row that never covers.
     if kb == kb:
-        kb_s, kn_s = f"{kb:.0f}", f"{kb / n:.3f}"
+        # As a percentage, and to one decimal below 10%: at two decimals of a
+        # fraction, Kang--Schafer (0.014) and ACIC (0.006) both print 0.01,
+        # which hides the ordering the rows are sorted by. The prose quotes
+        # these as percentages too.
+        frac = 100.0 * kb / n
+        kb_s = f"{kb:.0f} ({frac:.0f}%)" if frac >= 10 else f"{kb:.0f} ({frac:.1f}%)"   # esc() escapes the %
     elif cov[0] < 0.95:
-        kb_s, kn_s = "$<1$", "$<1/n$"
+        kb_s = "$<1$"
     else:
-        kb_s, kn_s = "---", "---"
+        kb_s = "---"
     # The full-sample coverages rest on 40 replications with one subset each,
     # so they carry a standard error of six to eight points. Printing three
     # decimals next to that would imply precision the estimate does not have.
     se = v["cov_se_clustered"][-1]
     rows4.append([DISPLAY[dgp], str(n), f"{rho:.4f}", f"{m:.2f}",
                   f"{v['nrmse_unit']:.2f}", f"{cov[-1]:.2f}", f"{se:.2f}",
-                  kb_s, kn_s])
+                  kb_s])
 (OUT / "legacy_breaking.tex").write_text(latex_table(
     ["benchmark", "$n$", "$\\rho_S$", "$m_S$", "nRMSE", "cov at $k$=$n$",
-     "se", "$k^*$", "$k^*/n$"], rows4,
-    align="lrrrrrrrr",
+     "se", "$k^*$ ($k^*/n$)"], rows4,
+    align="lrrrrrrr",
     caption="The benchmarks of Figure~\\ref{fig:benchmarks}: shipped CausalPFN "
-            "checkpoint, independent composition, subsets drawn uniformly at "
+            "checkpoint, unit-level aggregation, subsets drawn uniformly at "
             "random, 40 replications per benchmark. $k^*$ is the largest subset "
             "for which the interval still covers and $k^*/n$ expresses it as a "
             "fraction of the sample. nRMSE is per-unit error divided by the spread "
@@ -152,9 +169,9 @@ rows5.append(["\\emph{uncorrelated errors (reference)}", "\\emph{0.707}", "\\emp
 
 # ---- Constructions at n=2000.
 CONSTRUCTION = {
-    "CNP, unit-level": "independent",
-    "latent NP": "within-draw",
-    "CNP": "direct decode",
+    "CNP, unit-level": "unit-level",
+    "latent NP": "SCM-marginalized",
+    "CNP": "SCM-marginalized",
 }
 ARM_DISPLAY = {"CNP, unit-level": "CNP", "latent NP": "latent NP", "CNP": "CNP"}
 # Sourced from the three n=2000 cells scored by two_path_ablation on one task
@@ -169,7 +186,7 @@ _ks = _n2["n2krepro_nv"]["ks"]
 assert all(_n2[t]["ks"] == _ks for t, _, _ in N2SRC), "n=2000 cells disagree on k"
 assert all(_n2[t]["num_tasks"] == 96 for t, _, _ in N2SRC), "task count drift"
 (OUT / "n2000.tex").write_text(latex_table(
-    ["arm", "construction"] + [f"$k$={k}" for k in _ks],
+    ["arm", "aggregation"] + [f"$k$={k}" for k in _ks],
     [[ARM_DISPLAY[lab], CONSTRUCTION[lab]] + [f"{c:.2f}" for c in _n2[t][key]]
      for t, lab, key in N2SRC], align="ll" + "r" * len(_ks),
     caption="Coverage of nominal $95\\%$ subset-CATE intervals at $n=2000$, by how "
@@ -178,7 +195,9 @@ assert all(_n2[t]["num_tasks"] == 96 for t, _, _ in N2SRC), "task count drift"
             "but were trained outside the recipe of Appendix~\\ref{app:protocol}, "
             "at different learning rates and batch sizes ($10^{-3}$/32, "
             "$10^{-3}$/16 and $3\\times10^{-4}$/32), with one seed each. The "
-            "comparison is therefore not controlled for optimization, and we "
+            "two CNP rows are separately trained models, not one checkpoint "
+            "queried two ways. The comparison is therefore not controlled "
+            "for optimization, and we "
             "report it as corroboration at larger $n$ rather than as a controlled "
             "result.",
     label="tab:n2000"))
@@ -284,11 +303,16 @@ for dgp, fn, tag, rule, rungs in LADDERS:
         # "clean / propensity stratum" is most of why this was hard to scan.
         block = (dgp, rule)
         first = block not in seen
-        if first and seen:
-            rows_ss.append(None)          # rendered as \addlinespace
-        rows_ss.append([dgp if first else "",
-                        rule if first else "", lab,
-                        f"{rho:.3f}",
+        if first:
+            if seen:
+                rows_ss.append(None)      # rendered as \addlinespace
+            # A spanning italic header per group, rather than two columns of
+            # mostly-blank continuation cells.
+            rows_ss.append(("GROUP", f"{dgp}, {rule}"))
+        # "all units" is the unselected baseline, not a stratum of the rule
+        # above it; saying so stops it reading as the widest rung of a ladder.
+        shown = "all units (baseline)" if lab == "all units" else lab
+        rows_ss.append([shown, f"{rho:.3f}",
                         # two decimals so the cell shared with Tab. threearm
                         # prints the same number in both places
                         f"{m:.2f}", f"{kmax}",
@@ -296,11 +320,12 @@ for dgp, fn, tag, rule, rungs in LADDERS:
                         f"{kb:.0f}" if kb == kb else "---"])
         seen.add(block)
 (OUT / "subset_selection.tex").write_text(latex_table(
-    ["DGP", "rule", "subset", "$\\rho_S$", "$m_S$", "$k_{\\max}$",
+    ["subset", "$\\rho_S$", "$m_S$", "$k_{\\max}$",
      "$(k_{\\max}\\!-\\!1)\\rho_S$", "$k^*$"],
-    rows_ss, align="lllrrrrr",
+    rows_ss, align="lrrrrr",
     caption="Subset selection rules on the shipped checkpoint at $n=500$, with "
-            "intervals formed by independent composition. $k_{\\max}$ is the size "
+            "intervals formed by unit-level aggregation, over $64$ tasks with "
+            "$48$ subsets per task. $k_{\\max}$ is the size "
             "of the pool a rule selects, $(k_{\\max}\\!-\\!1)\\rho_S$ the largest "
             "design effect reachable within it, and $k^*$ the largest subset for "
             "which the interval still covers; ``---'' means coverage never falls "

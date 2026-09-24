@@ -2,25 +2,25 @@
 \centering
 \footnotesize
 \setlength{\tabcolsep}{5pt}
-\begin{tabular}{lrrlrr}
+\begin{tabular}{llrrlrr}
 \toprule
-\textbf{cell} & \textbf{$m_S$} & \textbf{$k_{\max}$} & \textbf{interval} & \textbf{cov, smallest $k$} & \textbf{cov, $k_{\max}$} \\
+\textbf{model} & \textbf{data} & \textbf{$m_S$} & \textbf{$k_{\max}$} & \textbf{interval} & \textbf{cov, smallest $k$} & \textbf{cov, $k_{\max}$} \\
 \midrule
-CausalPFN, clean, all units & 21.97 & 500 & reported & 1.00 & 0.94 \\
- &  &  & rescaled & 0.88 & 0.42 \\
- &  &  & $+$ design effect & 0.88 & 0.93 \\
+CausalPFN & clean, all units & 21.97 & 500 & reported & 1.00 & 0.94 \\
+ &  &  &  & rescaled & 0.88 & 0.42 \\
+ &  &  &  & $+$ design effect & 0.88 & 0.93 \\
 \addlinespace[2pt]
-CausalPFN, soft overlap, bottom 10\% & 3.56 & 44 & reported & 0.99 & 0.78 \\
- &  &  & rescaled & 0.96 & 0.58 \\
- &  &  & $+$ design effect & 0.96 & 0.93 \\
+CausalPFN & soft overlap, bottom 10\% & 3.56 & 44 & reported & 0.99 & 0.78 \\
+ &  &  &  & rescaled & 0.96 & 0.58 \\
+ &  &  &  & $+$ design effect & 0.96 & 0.93 \\
 \addlinespace[2pt]
-CNP (ours) & 0.48 & 1000 & reported & 0.82 & 0.13 \\
- &  &  & rescaled & 0.92 & 0.18 \\
- &  &  & $+$ design effect & 0.93 & 0.95 \\
+CNP (ours) & clean, $n{=}1000$ & 0.48 & 1000 & reported & 0.82 & 0.13 \\
+ &  &  &  & rescaled & 0.92 & 0.18 \\
+ &  &  &  & $+$ design effect & 0.93 & 0.95 \\
 \addlinespace[2pt]
-IHDP & 3.05 & 747 & reported & 1.00 & 0.60 \\
- &  &  & rescaled & 0.98 & 0.33 \\
- &  &  & $+$ design effect & 0.99 & 0.97 \\
+CausalPFN & IHDP & 3.05 & 747 & reported & 1.00 & 0.60 \\
+ &  &  &  & rescaled & 0.98 & 0.33 \\
+ &  &  &  & $+$ design effect & 0.99 & 0.97 \\
 \bottomrule
 \end{tabular}
 \caption{Three interval constructions applied to the same stored unit-level outputs. \emph{Reported} is the interval as returned, \emph{rescaled} rescales the unit-level variance by $m_S$ before composing independently, and \emph{$+$ design effect} additionally multiplies by $1+(k-1)\rho_S$. Coverage is shown at the smallest and largest subset in each cell. Both factors are measured against the true effects, so the last construction is an oracle diagnostic rather than a deployable interval.}
