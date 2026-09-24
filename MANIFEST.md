@@ -125,7 +125,7 @@ the covariate-quartile rule and `soft` evaluation at soft overlap;
 | `elad050` | CNP (direct decode) | mixture | 500 | effect_top | 0.50 | 3 |
 | `g1` | CNP (direct decode) | mixture | 500 | random | 0.25 | 3 |
 | `g1corr` | CNP (direct decode) | mixture | 500 | x1_quartile | 0.25 | 3 |
-| `g1soft` | CNP (direct decode) | mixture | 500 | random | whole sample | 3 |
+| `g1soft` | CNP (direct decode) | mixture | 500 | random | 0.25 | 3 |
 | `lad010` | CNP (direct decode) | mixture | 500 | propensity_stratum | 0.10 | 3 |
 | `lad025` | CNP (direct decode) | mixture | 500 | propensity_stratum | 0.25 | 3 |
 | `lad050` | CNP (direct decode) | mixture | 500 | propensity_stratum | 0.50 | 3 |

@@ -27,6 +27,7 @@ If Path A also collapses, the story is wrong and that supersedes everything.
 from __future__ import annotations
 
 import argparse
+import os
 import json
 
 import numpy as np
@@ -62,7 +63,7 @@ def _mixture_fn(scm):
     return mix
 
 
-def generate_tasks(num_tasks, n, prior_fn):
+def generate_tasks(num_tasks, n, prior_fn, standardize=True):
     """Per-unit exact ITEs for every context row, in the model's standardized
     units. theta_S for any subset is then the mean over that subset, so Path A
     and Path B are scored against the identical target."""
@@ -81,7 +82,7 @@ def generate_tasks(num_tasks, n, prior_fn):
                 observed_feature_names=obs,
                 query_feature_names=None,
                 query_x_type="context-ite",
-                standardize=True,
+                standardize=standardize,
                 return_propensity=True,
                 worker_seed=EVAL_SEED + 7919 * i,
             )
@@ -127,6 +128,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--checkpoint", required=True)
     ap.add_argument("--tag", required=True)
+    ap.add_argument("--out_dir", default="logs/inspec",
+                    help="where twopath_<tag>.json is written")
     ap.add_argument("--num_tasks", type=int, default=64)
     ap.add_argument("--num_draws", type=int, default=500)
     ap.add_argument("--n_sub", type=int, default=24)
@@ -218,7 +221,12 @@ def main():
     )
     eval_ood = (a.eval_overlap_floor is not None
                 or a.eval_overlap_sharpness is not None)
-    tasks = generate_tasks(a.num_tasks, n, prior_fn)
+    # Tasks are preprocessed the way this checkpoint was trained. Scoring a
+    # model trained on raw tasks against standardized ones shows it inputs it
+    # never saw and inflates its reported widths; that is what happened to
+    # the Gaussian-head CNP before this was read from the checkpoint.
+    standardize = bool(cfg.get("standardize", True))
+    tasks = generate_tasks(a.num_tasks, n, prior_fn, standardize=standardize)
     # Default grid is unchanged so existing cells stay comparable. The
     # denser options exist because k* lands in the single digits when the
     # per-unit cushion m is small, and a 9-point grid cannot resolve a
@@ -467,7 +475,9 @@ def main():
     for p, lab in (("A", "direct"), ("B", "decomp")):
         print(f"  cov {lab} " + "".join(f"{c:9.3f}" for c in out[f"cov_{p}"]))
         print(f"  wid {lab} " + "".join(f"{w:9.4f}" for w in out[f"width_{p}"]))
-    with open(f"logs/inspec/twopath_{a.tag}.json", "w") as f:
+    out["standardize"] = standardize
+    os.makedirs(a.out_dir, exist_ok=True)
+    with open(os.path.join(a.out_dir, f"twopath_{a.tag}.json"), "w") as f:
         json.dump(out, f, indent=2)
 
 

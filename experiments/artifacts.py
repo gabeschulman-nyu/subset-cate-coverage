@@ -1,9 +1,9 @@
 """Which measurement artifacts the paper's figures and tables consume.
 
 One definition, several consumers: make_figure_collapse builds its pooled
-scatter from it, make_figure_twopath and make_figure_threearm and
-build_tex_tables read their sources from it, and devtools/build_release.sh
-ships exactly what it names. A rule that appears once cannot disagree with
+scatter from it, make_figure_twopath and docs/latex/build_tex_tables read
+their sources from it, and devtools/build_release.sh ships exactly what it
+names. A rule that appears once cannot disagree with
 itself; restating these rules separately is what let them drift apart before.
 
 Two rules govern everything here.
@@ -28,8 +28,12 @@ import os
 
 INSPEC = "logs/inspec"
 
-# The final checkpoints of our two models, identified by their sweep directory.
-FINAL_CHECKPOINTS = ("sweep_gauss1_s", "sweep_latfix_s")
+# The final checkpoints of our two models, identified by their sweep directory,
+# and whether each was trained on per-task standardized tasks. A cell counts
+# only if it was scored the way its checkpoint was trained. Cells that predate
+# the `standardize` field were scored standardized, which was then hardcoded.
+TRAINED_STANDARDIZED = {"sweep_gauss1_s": False, "sweep_latfix_s": True}
+FINAL_CHECKPOINTS = tuple(TRAINED_STANDARDIZED)
 
 # Figure 2's cells. Each is also the run kept for its checkpoint's
 # random-subset setting wherever that setting was scored more than once.
@@ -96,8 +100,8 @@ def setting(j):
 def twopath_cells(root: str = ".", recipe_only: bool = True, exempt=()):
     """Yield (tag, parsed) for every twopath cell a figure or table draws on.
 
-    Keeps final-configuration checkpoints only, drops smoke cells, and keeps
-    one run per setting: Figure 2's run for the random-subset setting, and
+    Keeps final-configuration checkpoints scored with the preprocessing they
+    were trained on, drops smoke cells, and keeps one run per setting: Figure 2's run for the random-subset setting, and
     otherwise the run on the densest k grid (the pool-fraction ladders).
     `exempt` names cells kept regardless -- the n=2000 table's -- which are
     neither final configurations nor on the recipe, as its caption states.
@@ -113,7 +117,11 @@ def twopath_cells(root: str = ".", recipe_only: bool = True, exempt=()):
         if tag in exempt:
             yield tag, j
             continue
-        if not any(c in j.get("checkpoint", "") for c in FINAL_CHECKPOINTS):
+        family = next((c for c in FINAL_CHECKPOINTS
+                       if c in j.get("checkpoint", "")), None)
+        if family is None:
+            continue
+        if j.get("standardize", True) != TRAINED_STANDARDIZED[family]:
             continue
         if recipe_only and j.get("recipe_drift"):
             continue

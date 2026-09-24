@@ -33,8 +33,8 @@ make verify
 ```
 
 This checks `artifacts.sha256`, then rebuilds
-`docs/figures/{benchmark_ladder,twopath,design_effect}.pdf` and
-`docs/latex/tables/{legacy_breaking,n2000,nsweep}.tex`. Every producer is
+`docs/figures/{benchmark_ladder,twopath,design_effect}.pdf` and the six
+tables in `docs/latex/tables/`. Every producer is
 seeded and the figures are byte-reproducible, so a clean run reproduces the
 paper's images and tables exactly. `make all` skips the checksum step.
 
