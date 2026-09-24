@@ -205,11 +205,44 @@ for _tag in artifacts.NSWEEP_TAGS:
             "Appendix~\\ref{app:dgps} at five sample sizes, with subsets drawn "
             "uniformly at random, 64 tasks and 48 subsets per task. One checkpoint "
             "is used throughout, so no training choice varies down the table. "
-            "$(n-1)\\rho_S$ is the design effect at the full sample. This is a "
-            "separate evaluation from Tables~\\ref{tab:threearm} "
-            "and~\\ref{tab:subset-selection}, on its own task stream and $k$ grid.",
+            "$(n-1)\\rho_S$ is the design effect at the full sample.",
     label="tab:nsweep"))
 print("wrote nsweep.tex")
+
+
+# ---- Appendix A: the benchmark suite. The sample sizes are read from the
+# measurements so they cannot drift from what was actually evaluated; the
+# covariate counts and provenance are metadata, verified once against the
+# loaders in benchmarks/ rather than measured.
+BENCH_META = [
+    ("HillA", "Hill-A", "simulated $\\mathcal{N}(0, I)$", 25,
+     "\\citet{hill2011} setting A"),
+    ("FriedmanConf", "Friedman", "simulated $\\mathrm{U}(0,1)$", 10,
+     "\\citet{friedman1991} surface, confounded"),
+    ("IHDP", "IHDP", "real, IHDP study", 25,
+     "\\citet{hill2011}; splits of \\citet{shalit2017}"),
+    ("HillB", "Hill-B", "simulated $\\mathcal{N}(0, I)$", 25,
+     "\\citet{hill2011} setting B"),
+    ("KangSchafer", "Kang--Schafer", "simulated, nonlinear in 4 latents", 4,
+     "\\citet{kang2007}"),
+    ("ACIC2016", "ACIC 2016", "real, competition covariate table", 58,
+     "\\citet{dorie2019}"),
+]
+(OUT / "benchmarks.tex").write_text(latex_table(
+    ["benchmark", "covariates", "$n$", "$d$", "design"],
+    [[disp, cov, str(bl[key]["n"]), str(d), design]
+     for key, disp, cov, d, design in BENCH_META],
+    align="llrrl",
+    caption="The six benchmarks, ordered as in Figure~\\ref{fig:benchmarks}; "
+            "$d$ is the number of covariates supplied to the estimator. IHDP "
+            "uses the \\texttt{ihdp\\_npci\\_1-100} splits and ACIC 2016 the "
+            "official \\texttt{aciccomp2016} generator, and the four simulated "
+            "designs are reimplemented from the cited papers. We use 40 "
+            "replications of each: splits 1--40 of 100 for IHDP, settings "
+            "1--40 of 77 for ACIC 2016, and seeds 1--40 for the simulated "
+            "designs.",
+    label="tab:benchmarks"))
+print("wrote benchmarks.tex")
 
 # ---- Selection rules (Appendix D).
 LADDERS = [
@@ -274,4 +307,4 @@ for dgp, fn, tag, rule, rungs in LADDERS:
             "below nominal within the pool.",
     label="tab:subset-selection"))
 
-print(f"wrote 4 LaTeX table fragments to {OUT}")
+print(f"wrote 5 LaTeX table fragments to {OUT}")

@@ -1,0 +1,19 @@
+\begin{table}[H]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrrl}
+\toprule
+\textbf{benchmark} & \textbf{covariates} & \textbf{$n$} & \textbf{$d$} & \textbf{design} \\
+\midrule
+Hill-A & simulated $\mathcal{N}(0, I)$ & 1000 & 25 & \citet{hill2011} setting A \\
+Friedman & simulated $\mathrm{U}(0,1)$ & 1000 & 10 & \citet{friedman1991} surface, confounded \\
+IHDP & real, IHDP study & 747 & 25 & \citet{hill2011}; splits of \citet{shalit2017} \\
+Hill-B & simulated $\mathcal{N}(0, I)$ & 1000 & 25 & \citet{hill2011} setting B \\
+Kang--Schafer & simulated, nonlinear in 4 latents & 1000 & 4 & \citet{kang2007} \\
+ACIC 2016 & real, competition covariate table & 4802 & 58 & \citet{dorie2019} \\
+\bottomrule
+\end{tabular}
+\caption{The six benchmarks, ordered as in Figure~\ref{fig:benchmarks}; $d$ is the number of covariates supplied to the estimator. IHDP uses the \texttt{ihdp\_npci\_1-100} splits and ACIC 2016 the official \texttt{aciccomp2016} generator, and the four simulated designs are reimplemented from the cited papers. We use 40 replications of each: splits 1--40 of 100 for IHDP, settings 1--40 of 77 for ACIC 2016, and seeds 1--40 for the simulated designs.}
+\label{tab:benchmarks}
+\end{table}
