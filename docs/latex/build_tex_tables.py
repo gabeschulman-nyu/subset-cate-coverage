@@ -125,8 +125,8 @@ for dgp in ORDER:
     ["benchmark", "$n$", "$\\rho_S$", "$m_S$", "nRMSE", "cov at $k$=$n$",
      "se", "$\\hat k^*$ ($\\hat k^*/n$)"], rows4,
     align="lrrrrrrr",
-    caption="The benchmarks of Figure~\\ref{fig:benchmarks}: shipped CausalPFN "
-            "checkpoint, unit-level aggregation, subsets drawn uniformly at "
+    caption="The benchmarks of Figure~\\ref{fig:benchmarks}: CausalPFN, "
+            "unit-level aggregation, subsets drawn uniformly at "
             "random, 40 replications per benchmark. " + KHAT_DEF + ", with "
             "$\\hat k^*/n$ as a percentage of the sample; ``---'' means coverage "
             "never falls below nominal and $<1$ that it is already below at the "
@@ -175,7 +175,7 @@ for _tag in artifacts.NSWEEP_TAGS:
     ["$n$", "$\\rho_S$", "$m_S$", KHAT, "$1+(n-1)\\rho_S$",
      "cov at $k$=$n$"],
     _NS, align="lrrrrr",
-    caption="The shipped CausalPFN checkpoint on the synthetic family of "
+    caption="CausalPFN on the synthetic family of "
             "Appendix~\\ref{app:dgps} at five sample sizes, with subsets drawn "
             "uniformly at random, 64 tasks and 48 subsets per task. One checkpoint "
             "is used throughout, so no training choice varies down the table. "
@@ -286,7 +286,7 @@ for dgp, fn, tag, rule, rungs in LADDERS:
     ["subset", "$\\rho_S$", "$m_S$", "$k_{\\max}$",
      "$1+(k_{\\max}\\!-\\!1)\\rho_S$", KHAT],
     rows_ss, align="lrrrrr",
-    caption="Subset selection rules on the shipped checkpoint at $n=500$, with "
+    caption="Subset selection rules on CausalPFN at $n=500$, with "
             "intervals formed by unit-level aggregation, over $64$ tasks with "
             "$48$ subsets per task. $k_{\\max}$ is the size of the pool a rule "
             "selects and $1+(k_{\\max}\\!-\\!1)\\rho_S$ the largest design "

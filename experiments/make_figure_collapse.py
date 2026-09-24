@@ -154,7 +154,11 @@ def main():
     ind = np.array([r["path"] == "independent" for r in rows])
 
     figstyle.apply()
-    fig, ax = plt.subplots(figsize=(figstyle.WIDTH, 3.4))
+    # Displayed at 0.64\\textwidth (about 3.5 in), so drawn at 3.6 in: the
+    # page shrinks it by under 3% and these sizes are what the reader sees.
+    plt.rcParams.update({"xtick.labelsize": 9, "ytick.labelsize": 9,
+                         "axes.labelsize": 10, "legend.fontsize": 8})
+    fig, ax = plt.subplots(figsize=(3.6, 2.8))
     xs = np.geomspace(max(R.min(), 1e-3), R.max() * 1.1, 300)
     ax.plot(xs, 2 * norm.cdf(Z * np.sqrt(xs)) - 1, color="k", lw=1.3, zorder=6,
             label=r"$2\Phi(z\sqrt{R})-1$")
@@ -170,7 +174,7 @@ def main():
                 idx = np.where(s)[0][::THIN]
                 s = np.zeros_like(s)
                 s[idx] = True
-            ax.scatter(R[s], C[s], s=9, marker=mk, alpha=0.7, zorder=4,
+            ax.scatter(R[s], C[s], s=14, marker=mk, alpha=0.7, zorder=4,
                        color=col if face is None else "none",
                        edgecolor=col if face else "white", linewidth=1.0,
                        label=lab)
@@ -178,7 +182,7 @@ def main():
     sh_all = collect_shipped()
     sh = [r for r in sh_all if r["R"] <= R_MAX]
     if sh:
-        ax.scatter([r["R"] for r in sh], [r["cov"] for r in sh], s=11,
+        ax.scatter([r["R"] for r in sh], [r["cov"] for r in sh], s=18,
                    marker="D", alpha=0.85, zorder=5, color=SHIP,
                    edgecolor="white", linewidth=0.4,
                    label="unit-level: CausalPFN")
@@ -187,10 +191,22 @@ def main():
     ax.axvline(1.0, color=GREY, lw=0.8, ls=(0, (1, 1.5)), zorder=1)
     ax.set_xscale("log")
     ax.set_xlabel(r"variance ratio $R = m_S\,/\,[1+(k-1)\rho_S]$")
-    ax.set_ylabel("coverage of nominal 95% interval")
-    # Legend outside the axes: inside it covered the low-R corner, which is
-    # the part of the curve the panel exists to show.
-    ax.legend(loc="upper left", bbox_to_anchor=(1.01, 1.0), borderaxespad=0)
+    # "coverage", as in Figure 2: at this height the longer label ran past
+    # the axes, and the dashed line already marks the nominal level.
+    ax.set_ylabel("coverage")
+    # Legend below, two columns: unit-level on the left, SCM-marginalized and
+    # the curve on the right. Inside the axes it had to sit over the lower
+    # right, which is empty only about an inch across at this size -- too
+    # narrow for these labels, so it covered data at R ~ 0.1-0.2.
+    h, l = ax.get_legend_handles_labels()
+    order = [l.index(x) for x in ("unit-level: CNP", "unit-level: latent NP",
+                                  "unit-level: CausalPFN",
+                                  "SCM-marginalized: CNP",
+                                  "SCM-marginalized: latent NP",
+                                  r"$2\Phi(z\sqrt{R})-1$")]
+    fig.legend([h[i] for i in order], [l[i] for i in order],
+               loc="outside lower center", ncol=2, frameon=False,
+               handletextpad=0.3, columnspacing=1.0, labelspacing=0.25)
     ax.set_ylim(0.0, 1.06)
     figstyle.save(fig, OUT)
 

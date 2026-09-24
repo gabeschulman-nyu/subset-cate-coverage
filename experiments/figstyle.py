@@ -111,8 +111,10 @@ def save(fig, path, *, report=True):
                  for t in (ax.get_xticklabels() + ax.get_yticklabels()
                            + [ax.xaxis.label, ax.yaxis.label])
                  if t.get_text()]
-        lg = [t.get_fontsize() for ax in fig.axes
-              if ax.get_legend() for t in ax.get_legend().get_texts()]
+        # Figure-level legends count too: a legend placed below the axes is
+        # attached to the figure, and missing it would overstate the minimum.
+        lgs = [ax.get_legend() for ax in fig.axes if ax.get_legend()] + list(fig.legends)
+        lg = [t.get_fontsize() for g in lgs for t in g.get_texts()]
         smallest = min(sizes + lg) if (sizes or lg) else float("nan")
         print(f"  {path.split('/')[-1]:26s} {w:.2f} x {h:.2f} in   "
               f"min font {smallest:.1f}pt")
