@@ -350,7 +350,7 @@ _legend = f"; {_legend}" if _legend else ""
             "nRMSE is the root-mean-square error of the "
             "per-unit effect estimates divided by the standard deviation of the "
             "observed outcome, within each dataset and averaged over "
-            "replications. Rows are ordered by $\\hat k^*/n$.",
+            "datasets. Rows are ordered by $\\hat k^*/n$.",
     label="tab:legacy"))
 
 
