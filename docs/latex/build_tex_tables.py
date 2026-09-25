@@ -337,9 +337,9 @@ _legend = f"; {_legend}" if _legend else ""
     ["benchmark", "$n$", "$\\rho_S$", "$m_S$", "nRMSE", "cov at $k$=$n$",
      "se", "$\\hat k^*$ ($\\hat k^*/n$)"], rows4,
     align="lrrrrrrr",
-    caption="The benchmarks of Figure~\\ref{fig:benchmarks}: CausalPFN, "
-            "unit-level aggregation, subsets drawn uniformly at "
-            "random, 40 replications per benchmark. " + KHAT_DEF + ", with "
+    caption="The benchmarks of Figure~\\ref{fig:benchmarks}: CausalPFN with "
+            "its temperature calibration, unit-level aggregation, subsets drawn "
+            "uniformly at random, 40 datasets per benchmark. " + KHAT_DEF + ", with "
             "$\\hat k^*/n$ as a percentage of the sample" + _legend + ". "
             "nRMSE is the root-mean-square error of the "
             "per-unit effect estimates divided by the standard deviation of the "
