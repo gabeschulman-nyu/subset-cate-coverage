@@ -74,7 +74,7 @@ TABLE3_LADDERS = ("ladder_propensity_m_n500", "ladder_nested_n500",
                   "ladder_neighbor_ball_m_n500", "ladder_propensity_m_ovsoft500",
                   "ladder_nested_ovsoft500")
 
-# The benchmark measurements: Figure 1, Tables 1 and 4, and Table 2's IHDP row.
+# The benchmark measurements: Figure 1, Table 4, and Table 2's IHDP row.
 BENCHMARK = "benchmark_ladder"
 
 

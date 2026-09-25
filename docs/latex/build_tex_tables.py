@@ -1,9 +1,8 @@
-"""Write the paper's six tables from the measurement artifacts.
+"""Write the paper's five generated tables from the measurement artifacts.
 
     python docs/latex/build_tex_tables.py   -> docs/latex/tables/*.tex
 
-Tables are emitted in paper order: benchmarks (Appendix A), threearm
-(Appendix C), subset_selection (Appendix D), legacy_breaking, n2000 and
+Tables are emitted in paper order: threearm (Appendix C), subset_selection (Appendix D), legacy_breaking, n2000 and
 nsweep (Appendix F). Which artifact supplies each setting is decided in
 experiments/artifacts.py, not here.
 """
@@ -67,7 +66,7 @@ def latex_table(headers, rows, align=None, caption="", label="", note=""):
     # above body font size and shrinks a wide one below it; either way the
     # table stops matching the text. Tables render at their natural width in
     # \footnotesize, and anything that overflows loses columns instead.
-    return (f"\\begin{{table}}[H]\n\\centering\n\\footnotesize\n\\setlength{{\\tabcolsep}}{{4pt}}\n"
+    return (f"\\begin{{table}}[tp]\n\\centering\n\\footnotesize\n\\setlength{{\\tabcolsep}}{{4pt}}\n"
             f"\\begin{{tabular}}{{{align}}}\n\\toprule\n{head}\n\\midrule\n{body}\n\\bottomrule\n"
             f"\\end{{tabular}}{notestr}\n\\caption{{{caption}}}\n\\label{{{label}}}\n\\end{{table}}\n")
 
@@ -80,42 +79,8 @@ def _inspec(name):
         return json.load(f)
 
 
-# The benchmark measurements, read by Tables benchmarks, threearm and legacy.
+# The benchmark measurements, read by Tables threearm and legacy.
 bl = _inspec(f"{artifacts.BENCHMARK}.json")
-
-
-# ---- Table benchmarks (Appendix A) ------------------------------------------
-# The sample sizes are read from the measurements so they cannot drift from what was actually evaluated; the
-# covariate counts and provenance are metadata, verified once against the
-# loaders in benchmarks/ rather than measured.
-BENCH_META = [
-    ("HillA", "Hill-A", "simulated $\\mathcal{N}(0, I)$", 25,
-     "\\citet{hill2011} setting A"),
-    ("FriedmanConf", "Friedman", "simulated $\\mathrm{U}(0,1)$", 10,
-     "\\citet{friedman1991} surface, confounded"),
-    ("IHDP", "IHDP", "real, IHDP study", 25,
-     "\\citet{hill2011}; splits of \\citet{shalit2017}"),
-    ("HillB", "Hill-B", "simulated $\\mathcal{N}(0, I)$", 25,
-     "\\citet{hill2011} setting B"),
-    ("KangSchafer", "Kang--Schafer", "simulated, nonlinear in 4 latents", 4,
-     "\\citet{kang2007}"),
-    ("ACIC2016", "ACIC 2016", "real, competition covariate table", 58,
-     "\\citet{dorie2019}"),
-]
-(OUT / "benchmarks.tex").write_text(latex_table(
-    ["benchmark", "covariates", "$n$", "$d$", "design"],
-    [[disp, cov, str(bl[key]["n"]), str(d), design]
-     for key, disp, cov, d, design in BENCH_META],
-    align="llrrl",
-    caption="The six benchmarks, ordered as in Figure~\\ref{fig:benchmarks}; "
-            "$d$ is the number of covariates supplied to the estimator. IHDP "
-            "uses the \\texttt{ihdp\\_npci\\_1-100} splits and ACIC 2016 the "
-            "official \\texttt{aciccomp2016} generator, and the four simulated "
-            "designs are reimplemented from the cited papers. We use 40 "
-            "replications of each: splits 1--40 of 100 for IHDP, settings "
-            "1--40 of 77 for ACIC 2016, and seeds 1--40 for the simulated "
-            "designs.",
-    label="tab:benchmarks"))
 
 
 # ---- Table threearm (Appendix C): three intervals from the same outputs ----
@@ -184,7 +149,7 @@ def threearm_table():
         if i % 3 == 2 and i + 1 < len(rows):
             body.append("\\addlinespace[2pt]")
     return (
-        "\\begin{table}[H]\n\\centering\n\\footnotesize\n"
+        "\\begin{table}[tp]\n\\centering\n\\footnotesize\n"
         "\\setlength{\\tabcolsep}{5pt}\n\\begin{tabular}{llrrlrr}\n\\toprule\n"
         "\\textbf{model} & \\textbf{data} & \\textbf{$m_S$} & "
         "\\textbf{$k_{\\max}$} & "
@@ -284,7 +249,7 @@ for dgp, fn, tag, rule, rungs in LADDERS:
 # hardcoded order goes stale the moment a rescore moves a crossing.
 ORDER = ["HillA", "FriedmanConf", "IHDP", "HillB", "KangSchafer", "ACIC2016",
          "HillBHeavy"]
-# Display names must match Fig. benchmarks and the Appendix A table; the JSON
+# Display names must match Fig. benchmarks and Table 1 in main.tex; the JSON
 # keys are the internal DGP identifiers.
 DISPLAY = {"HillA": "Hill-A", "FriedmanConf": "Friedman", "IHDP": "IHDP",
            "HillB": "Hill-B", "KangSchafer": "Kang--Schafer",
@@ -404,4 +369,4 @@ for _tag in artifacts.NSWEEP_TAGS:
             "means coverage never falls below nominal. " + KHAT_XREF,
     label="tab:nsweep"))
 
-print(f"wrote the paper's six tables to {OUT}")
+print(f"wrote the paper's five tables to {OUT}")
