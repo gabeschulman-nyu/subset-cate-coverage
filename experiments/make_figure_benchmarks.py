@@ -37,7 +37,7 @@ Z = 1.96
 # them here cost a third of the panel. Each series carries a distinct dash and
 # marker as well as a hue, so the figure survives greyscale.
 SHOW = [("HillA", "Hill-A"), ("FriedmanConf", "Friedman"), ("IHDP", "IHDP"),
-        ("HillB", "Hill-B"), ("KangSchafer", "Kang--Schafer"),
+        ("HillB", "Hill-B"), ("KangSchafer", "Kang\u2013Schafer"),
         ("ACIC2016", "ACIC 2016")]
 
 
@@ -65,9 +65,6 @@ def main():
                         alpha=0.10, lw=0, zorder=2)
         ax.plot(ks / n, pred, color=col, lw=0.8, ls=(0, (1, 1.4)), zorder=5,
                 alpha=0.8)
-        if kx == kx:
-            ax.plot([kx / n], [0.95], marker="v", color=col, ms=5, zorder=6,
-                    clip_on=False)
         rows.append((lab, n, rho, m, kx, kx / n if kx == kx else float("nan"),
                      cov[-1]))
     ax.plot([], [], color=figstyle.GREY, lw=0.8, ls=(0, (1, 1.4)),
@@ -78,6 +75,10 @@ def main():
     ax.set_ylabel("coverage of nominal 95% interval")
     ax.legend(loc="lower left", ncol=2, columnspacing=1.1, handletextpad=0.5)
     ax.set_ylim(0.10, 1.03)
+    # k = n is the ATE, which the caption names; mark it where the reader
+    # looks, just above the axis, at tick-label size.
+    ax.text(1.0, 0.012, "ATE", transform=ax.get_xaxis_transform(),
+            ha="center", va="bottom", fontsize=plt.rcParams["xtick.labelsize"])
     figstyle.save(fig, OUT)
     print(f"{'benchmark':15s} {'n':>5s} {'rho_S':>8s} {'m_S':>6s} "
           f"{'k*':>6s} {'k*/n':>7s} {'cov@n':>7s}")
