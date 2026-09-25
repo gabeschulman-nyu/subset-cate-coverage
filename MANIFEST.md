@@ -9,7 +9,7 @@ rerunning a generator on the same artifacts gives an identical image.
 
 | artifact | producer | detail |
 |---|---|---|
-| `logs/inspec/benchmark_ladder.json` | `experiments/benchmark_ladder.py` | six benchmarks, 40 reps each |
+| `logs/inspec/benchmark_ladder.json` | `experiments/benchmark_ladder.py` | six benchmarks and Hill-B heavy-tailed, 40 reps each, scored against the conditional effect |
 | `logs/inspec/ladder_effect_oracle_m_n500.json` | `experiments/subset_selection_coverage.py` | selection-rule ladder, n=500 |
 | `logs/inspec/ladder_neighbor_ball_m_n500.json` | `experiments/subset_selection_coverage.py` | selection-rule ladder, n=500 |
 | `logs/inspec/ladder_nested_n500.json` | `experiments/subset_selection_coverage.py` | selection-rule ladder, n=500 |

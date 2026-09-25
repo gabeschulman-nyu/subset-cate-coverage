@@ -6,15 +6,15 @@
 \toprule
 \textbf{benchmark} & \textbf{$n$} & \textbf{$\rho_S$} & \textbf{$m_S$} & \textbf{nRMSE} & \textbf{cov at $k$=$n$} & \textbf{se} & \textbf{$\hat k^*$ ($\hat k^*/n$)} \\
 \midrule
-Hill-A & 1000 & 0.0003 & 1.12 & 0.99 & 0.97 & 0.02 & --- \\
-Friedman & 1000 & 0.0013 & 1.50 & 0.94 & 0.88 & 0.05 & 397 (40\%) \\
-IHDP & 747 & 0.0420 & 5.43 & 0.07 & 0.60 & 0.08 & 85 (11\%) \\
-Hill-B & 1000 & 0.0029 & 0.95 & 0.35 & 0.50 & 0.08 & 39 (3.9\%) \\
-Kang--Schafer & 1000 & 0.0143 & 1.22 & 2.42 & 0.28 & 0.07 & 14 (1.4\%) \\
-ACIC 2016 & 4802 & 0.0202 & 1.63 & 0.36 & 0.20 & 0.06 & 30 (0.6\%) \\
-Hill-B heavy-tailed & 1000 & 0.0031 & 0.78 & 0.39 & 0.57 & 0.08 & $<1$ \\
+Hill-A & 1000 & 0.0771 & 35.13 & 0.07 & 0.82 & 0.06 & 502 (50\%) \\
+Friedman & 1000 & 0.0334 & 11.75 & 0.10 & 0.70 & 0.07 & 383 (38\%) \\
+IHDP & 747 & 0.0420 & 5.43 & 0.11 & 0.60 & 0.08 & 85 (11\%) \\
+Hill-B heavy-tailed & 1000 & 0.0077 & 2.03 & 0.30 & 0.53 & 0.08 & 62 (6.2\%) \\
+Hill-B & 1000 & 0.0038 & 1.42 & 0.28 & 0.53 & 0.08 & 58 (5.8\%) \\
+Kang--Schafer & 1000 & 0.0185 & 1.43 & 0.09 & 0.30 & 0.07 & 21 (2.1\%) \\
+ACIC 2016 & 4802 & 0.0202 & 1.63 & 0.27 & 0.20 & 0.06 & 30 (0.6\%) \\
 \bottomrule
 \end{tabular}
-\caption{The benchmarks of Figure~\ref{fig:benchmarks}: CausalPFN, unit-level aggregation, subsets drawn uniformly at random, 40 replications per benchmark. $\hat k^*$ is the subset size at which observed coverage first falls below nominal, interpolated in $\log k$, with $\hat k^*/n$ as a percentage of the sample; ``---'' means coverage never falls below nominal and $<1$ that it is already below at the smallest subset. nRMSE is per-unit error divided by the spread of the true effect, so $1.00$ matches predicting the mean. Rows are ordered by $\hat k^*/n$.}
+\caption{The benchmarks of Figure~\ref{fig:benchmarks}: CausalPFN, unit-level aggregation, subsets drawn uniformly at random, 40 replications per benchmark. $\hat k^*$ is the subset size at which observed coverage first falls below nominal, interpolated in $\log k$, with $\hat k^*/n$ as a percentage of the sample. nRMSE is the root-mean-square error of the per-unit effect estimates divided by the standard deviation of the observed outcome, within each dataset and averaged over replications. Rows are ordered by $\hat k^*/n$.}
 \label{tab:legacy}
 \end{table}

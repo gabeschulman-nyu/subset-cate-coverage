@@ -25,6 +25,8 @@ import numpy as np
 
 from metadentify.design_effect import from_per_unit_errors
 
+from benchmark_targets import target
+
 # Per-unit CausalPFN draws per benchmark replication, as
 # {DGP}_seed{NNNNN}.npz with keys samples0/samples1/tau_true.
 # Produced by benchmarks/run_causalpfn_pit.py; ~9GB, so not
@@ -67,14 +69,20 @@ def main():
         if not files:
             print(f"{dgp}: no parts, skipping")
             continue
-        TAU, E, SD, TRUE = [], [], [], []
+        TAU, E, SD, TRUE, NRMSE_Y = [], [], [], [], []
         for f in files:
             z = np.load(f)
             d = z["samples1"] - z["samples0"]
+            # The conditional effect tau(X_i), checked to carry no outcome
+            # noise; see benchmark_targets.
+            tau = target(dgp, z)
             TAU.append(d)
-            E.append(d.mean(axis=1) - z["tau_true"])
+            E.append(d.mean(axis=1) - tau)
             SD.append(d.std(axis=1))
-            TRUE.append(z["tau_true"])
+            TRUE.append(tau)
+            # Per-unit RMSE over the spread of the observed outcome, within
+            # this dataset: defined even when the effect is constant.
+            NRMSE_Y.append(float(np.sqrt(np.mean(E[-1] ** 2)) / z["y"].std()))
         Ea, SDa, TRUEa = np.stack(E), np.stack(SD), np.stack(TRUE)
         T, n = Ea.shape
         sigma2, rho = from_per_unit_errors(Ea)
@@ -83,7 +91,9 @@ def main():
         # raw sigma^2 is not comparable across rows. Normalise by the spread of
         # the true effect, as the superseded legacy table did.
         tau_sd = float(TRUEa.std())
-        nrmse = float(np.sqrt(sigma2) / tau_sd)
+        # A constant effect (Hill-A, Kang--Schafer) has no spread to
+        # normalise by; the tables use nrmse_y instead.
+        nrmse = float(np.sqrt(sigma2) / tau_sd) if tau_sd > 0 else None
         # Is rho resolved or noise? Bootstrap over replications, the
         # independent units here.
         brng = np.random.default_rng(777)
@@ -134,10 +144,13 @@ def main():
         cov_recal = _cov(lambda k: 1.0 / np.sqrt(max(m_rep, 1e-12)))
         cov_full = _cov(lambda k: np.sqrt(max(1.0 + (k - 1) * rho_rep, 1e-12)
                                           / max(m_rep, 1e-12)))
-        out[dgp] = {"n": n, "reps": T, "ks": ks, "coverage": cov,
+        out[dgp] = {"target": "conditional effect", "n": n, "reps": T, "ks": ks,
+                    "coverage": cov,
                     "cov_se_clustered": se, "rho_by_k": rho_k, "m_by_k": m_k,
                     "rho_full": rho, "m_global": m_glob,
                     "tau_sd": tau_sd, "nrmse_unit": nrmse,
+                    "rmse_unit": float(np.sqrt(sigma2)),
+                    "nrmse_y": float(np.mean(NRMSE_Y)),
                     "rho_ci": [rho_lo, rho_hi],
                     "cov_recal": cov_recal, "cov_full": cov_full,
                     "breaking_k": kx}

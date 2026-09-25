@@ -275,6 +275,8 @@ for dgp, fn, tag, rule, rungs in LADDERS:
 
 
 # ---- Table legacy (Appendix F): the benchmark suite in numbers --------------
+# Rows are sorted by k*/n below, as the caption says, rather than listed: a
+# hardcoded order goes stale the moment a rescore moves a crossing.
 ORDER = ["HillA", "FriedmanConf", "IHDP", "HillB", "KangSchafer", "ACIC2016",
          "HillBHeavy"]
 # Display names must match Fig. benchmarks and the Appendix A table; the JSON
@@ -314,9 +316,23 @@ for dgp in ORDER:
     # so they carry a standard error of six to eight points. Printing three
     # decimals next to that would imply precision the estimate does not have.
     se = v["cov_se_clustered"][-1]
-    rows4.append([DISPLAY[dgp], str(n), f"{rho:.4f}", f"{m:.2f}",
-                  f"{v['nrmse_unit']:.2f}", f"{cov[-1]:.2f}", f"{se:.2f}",
+    # Sort key: never crosses first, crosses at k < 1 last, else by k*/n.
+    order_key = (kb / n if kb == kb else
+                 float("-inf") if cov[0] < 0.95 else float("inf"))
+    rows4.append([order_key, DISPLAY[dgp], str(n), f"{rho:.4f}", f"{m:.2f}",
+                  # RMSE over the SD of the observed outcome: dividing by the
+                  # spread of the true effect is undefined where it is constant
+                  # (Hill-A, and Kang--Schafer, which has no effect).
+                  f"{v['nrmse_y']:.2f}", f"{cov[-1]:.2f}", f"{se:.2f}",
                   kb_s])
+rows4 = [r[1:] for r in sorted(rows4, key=lambda r: -r[0])]
+# Explain only the markers the table actually prints.
+_marks = {r[-1] for r in rows4}
+_legend = " and ".join(x for x in (
+    "``---'' means coverage never falls below nominal" if "---" in _marks else "",
+    "$<1$ that it is already below at the smallest subset" if "$<1$" in _marks else "",
+) if x)
+_legend = f"; {_legend}" if _legend else ""
 (OUT / "legacy_breaking.tex").write_text(latex_table(
     ["benchmark", "$n$", "$\\rho_S$", "$m_S$", "nRMSE", "cov at $k$=$n$",
      "se", "$\\hat k^*$ ($\\hat k^*/n$)"], rows4,
@@ -324,11 +340,11 @@ for dgp in ORDER:
     caption="The benchmarks of Figure~\\ref{fig:benchmarks}: CausalPFN, "
             "unit-level aggregation, subsets drawn uniformly at "
             "random, 40 replications per benchmark. " + KHAT_DEF + ", with "
-            "$\\hat k^*/n$ as a percentage of the sample; ``---'' means coverage "
-            "never falls below nominal and $<1$ that it is already below at the "
-            "smallest subset. nRMSE is per-unit error divided by the spread of "
-            "the true effect, so $1.00$ matches predicting the mean. Rows are "
-            "ordered by $\\hat k^*/n$.",
+            "$\\hat k^*/n$ as a percentage of the sample" + _legend + ". "
+            "nRMSE is the root-mean-square error of the "
+            "per-unit effect estimates divided by the standard deviation of the "
+            "observed outcome, within each dataset and averaged over "
+            "replications. Rows are ordered by $\\hat k^*/n$.",
     label="tab:legacy"))
 
 

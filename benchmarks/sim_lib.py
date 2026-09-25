@@ -109,16 +109,21 @@ DGPS = {"DGP1": dgp1, "DGP2": dgp2}
 # Validation-phase synthetic DGPs
 # ---------------------------------------------------------------------------
 
-def _finalize(X, z, y0, y1, p_treat, dgp_name) -> SimData:
-    n = X.shape[0]
+def _finalize(X, z, y0, y1, p_treat, dgp_name, *, mu0, mu1) -> SimData:
+    """The unit-level target is the CONDITIONAL effect mu1 - mu0.
+
+    y1 - y0 would add eps1 - eps0, since the two potential outcomes carry
+    independent noise; that is the individual effect, not tau(X_i). mu0 and
+    mu1 are required so no generator can fall back to it.
+    """
     y = np.where(z == 1, y1, y0)
-    tau = y1 - y0
+    tau = mu1 - mu0
     return SimData(
         X=X.astype(np.float32), z=z.astype(np.float32), y=y.astype(np.float32),
         tau=tau.astype(np.float32), y0=y0.astype(np.float32), y1=y1.astype(np.float32),
         p_treat=p_treat.astype(np.float32),
-        true_ate=float(np.mean(y1 - y0)),
-        true_att=float(np.mean((y1 - y0)[z == 1])) if (z == 1).any() else float("nan"),
+        true_ate=float(np.mean(tau)),
+        true_att=float(np.mean(tau[z == 1])) if (z == 1).any() else float("nan"),
         dgp=dgp_name,
     )
 
@@ -142,9 +147,11 @@ def hill_a(seed: int = 1, n: int = 1000, p: int = 25,
     eps0 = rng.standard_normal(n) * sigma_y
     eps1 = rng.standard_normal(n) * sigma_y
     tau_const = 4.0
-    y0 = X @ beta_y + eps0
-    y1 = X @ beta_y + tau_const + eps1
-    return _finalize(X, z, y0, y1, p_treat, "HillA")
+    mu0 = X @ beta_y
+    mu1 = mu0 + tau_const
+    y0 = mu0 + eps0
+    y1 = mu1 + eps1
+    return _finalize(X, z, y0, y1, p_treat, "HillA", mu0=mu0, mu1=mu1)
 
 
 def hill_b(seed: int = 1, n: int = 1000, p: int = 25,
@@ -183,7 +190,7 @@ def hill_b(seed: int = 1, n: int = 1000, p: int = 25,
     eps1 = rng.standard_normal(n) * sigma_y
     y0 = mu0 + eps0
     y1 = mu1 + eps1
-    return _finalize(X, z, y0, y1, p_treat, "HillB")
+    return _finalize(X, z, y0, y1, p_treat, "HillB", mu0=mu0, mu1=mu1)
 
 
 def kang_schafer(seed: int = 1, n: int = 1000) -> SimData:
@@ -192,7 +199,8 @@ def kang_schafer(seed: int = 1, n: int = 1000) -> SimData:
     Latent Z ~ N(0, I_4). Observed X = nonlinear(Z) so a linear PS in X is
     severely misspecified, but the analyst sees only X. Outcome is linear in Z:
         Y0 = 210 + 27.4*Z1 + 13.7*Z2 + 13.7*Z3 + 13.7*Z4 + eps
-        Y1 = Y0 + tau,  tau = 0 (the classical KS setup has null effect).
+        Y1 = Y0 + tau,  tau = 0 (the classical KS setup has null effect), so the
+    conditional effect is 0 for every unit; Y1 - Y0 is pure noise.
     We follow the canonical version with sigma=1, tau=0 (true ATE=0).
     """
     rng = np.random.default_rng(seed)
@@ -213,10 +221,12 @@ def kang_schafer(seed: int = 1, n: int = 1000) -> SimData:
 
     eps0 = rng.standard_normal(n)
     eps1 = rng.standard_normal(n)
-    y0 = 210 + 27.4 * z1 + 13.7 * z2 + 13.7 * z3 + 13.7 * z4 + eps0
+    mu0 = 210 + 27.4 * z1 + 13.7 * z2 + 13.7 * z3 + 13.7 * z4
     tau = 0.0
-    y1 = 210 + 27.4 * z1 + 13.7 * z2 + 13.7 * z3 + 13.7 * z4 + tau + eps1
-    return _finalize(X, z, y0, y1, p_treat, "KangSchafer")
+    mu1 = mu0 + tau
+    y0 = mu0 + eps0
+    y1 = mu1 + eps1
+    return _finalize(X, z, y0, y1, p_treat, "KangSchafer", mu0=mu0, mu1=mu1)
 
 
 def friedman_confounded(seed: int = 1, n: int = 1000, p: int = 10,
@@ -244,7 +254,7 @@ def friedman_confounded(seed: int = 1, n: int = 1000, p: int = 10,
     eps1 = rng.standard_normal(n) * sigma_y
     y0 = base + eps0
     y1 = base + tau + eps1
-    return _finalize(X, z, y0, y1, p_treat, "FriedmanConf")
+    return _finalize(X, z, y0, y1, p_treat, "FriedmanConf", mu0=base, mu1=base + tau)
 
 
 def hill_b_heavy(seed: int = 1, n: int = 1000, p: int = 25,
@@ -271,7 +281,7 @@ def hill_b_heavy(seed: int = 1, n: int = 1000, p: int = 25,
     eps1 = rng.standard_t(df, size=n) * sigma_y
     y0 = mu0 + eps0
     y1 = mu1 + eps1
-    return _finalize(X, z, y0, y1, p_treat, "HillBHeavy")
+    return _finalize(X, z, y0, y1, p_treat, "HillBHeavy", mu0=mu0, mu1=mu1)
 
 
 DGPS.update({

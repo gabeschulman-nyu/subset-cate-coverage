@@ -67,7 +67,10 @@ Stage 2 needs the `causalpfn` package and a GPU.
 `experiments/benchmark_ladder.py` reads per-unit draws for the six benchmarks
 as `{DGP}_seed{NNNNN}.npz`; producing them is about 9 GB, so only the derived
 summary (`logs/inspec/benchmark_ladder.json`) is shipped. Point `PIT_PARTS` at
-the directory if you regenerate them.
+the directory if you regenerate them. Every unit is scored against its
+conditional effect: IHDP and ACIC 2016 store it, and for the simulated designs
+`experiments/benchmark_targets.py` recomputes it with `benchmarks/sim_lib.py`
+and refuses any target that equals y1 - y0.
 
 ### Benchmark data
 
