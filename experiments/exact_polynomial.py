@@ -2,12 +2,12 @@
 
 The shared prior for the vanilla / Route B / Route A ablation: all arms
 train on this family. Targets come from
-metadentify.exact — closed-form, never Monte Carlo. Query names use upstream
+subsetcate.exact — closed-form, never Monte Carlo. Query names use upstream
 conventions (train.py derives predict_ate/query_x_type from them): PATE and
 STATE are aggregate decodes; CATE and ITE are per-query decodes.
 """
 
-from metadentify.exact import (
+from subsetcate.exact import (
     covariate_names,
     make_exact_cate_query_fn,
     make_exact_ite_query_fn,
@@ -16,7 +16,7 @@ from metadentify.exact import (
     make_hetero_prior_fn,
     make_polynomial_prior_fn,
 )
-from metadentify.mixture import CausalMixtureDistribution
+from subsetcate.mixture import CausalMixtureDistribution
 
 
 def add_args(parser):

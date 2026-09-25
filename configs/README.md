@@ -15,8 +15,10 @@ parser: every option comes back as recorded. Two recorded keys,
 `empirical_data_dir` and `empirical_max_len`, are not command-line options and
 are unused by these models.
 
-Checkpoint directories are set to `checkpoints/<name>`; nothing else was
-changed from the recorded values.
+Checkpoint directories are set to `checkpoints/<name>`, and the three
+experiment-tracking settings are omitted: tracking was off for every run and
+is not part of the released code. Nothing else was changed from the recorded
+values.
 
 Selection follows Appendix B: the CNP keeps the checkpoint with the best
 validation negative log-likelihood, the latent NP the one with the best

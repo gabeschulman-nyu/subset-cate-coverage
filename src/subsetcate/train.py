@@ -8,13 +8,13 @@ import filelock
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 
-from metadentify.mixture import (
+from subsetcate.mixture import (
     OfflineCausalDataGenerator,
     OfflineCausalDataModule,
     OnlineCausalDataModule,
 )
-from metadentify.modules import CausalMetaModel, build_backbone
-from metadentify.utils import get_available_cpus
+from subsetcate.modules import CausalMetaModel, build_backbone
+from subsetcate.utils import get_available_cpus
 
 
 def run_meta_training_pipeline(
@@ -65,7 +65,7 @@ def run_meta_training_pipeline(
         # aggregation index only. The target fn must be the counterfactual
         # primitive — CATE targets would train identically on additive
         # families and silently diverge on non-additive ones (M6c directive).
-        from metadentify.exact import require_counterfactual_target
+        from subsetcate.exact import require_counterfactual_target
 
         require_counterfactual_target(query_fn)
         if predict_ate:
@@ -92,7 +92,7 @@ def run_meta_training_pipeline(
 
     subset_sampler = None
     if query_name == "GATE":
-        from metadentify.subsets import make_subset_sampler
+        from subsetcate.subsets import make_subset_sampler
 
         # training=True hard-rejects evaluation-only backends here; the M7
         # held-out eval protocol constructs its correlated sampler explicitly,

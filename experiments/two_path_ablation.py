@@ -35,21 +35,21 @@ import torch
 
 from scipy.stats import norm
 
-from metadentify.design_effect import from_per_unit_errors
+from subsetcate.design_effect import from_per_unit_errors
 
 _Phi = norm.cdf
-from metadentify.exact import make_exact_ite_query_fn, make_polynomial_prior_fn
-from metadentify.functional_sampling import route_a_predictive_probs
-from metadentify.histogram import histogram_quantiles
-from metadentify.lotv import lotv_split
-from metadentify.mdn import mdn_sample
-from metadentify.mixture import (
+from subsetcate.exact import make_exact_ite_query_fn, make_polynomial_prior_fn
+from subsetcate.functional_sampling import route_a_predictive_probs
+from subsetcate.histogram import histogram_quantiles
+from subsetcate.lotv import lotv_split
+from subsetcate.mdn import mdn_sample
+from subsetcate.mixture import (
     CausalMixtureDistribution,
     PicklableLambdaWrapper,
     _worker_generate_task,
 )
-from metadentify.modules import CausalMetaModel, build_backbone
-from metadentify.recipe import assert_matches
+from subsetcate.modules import CausalMetaModel, build_backbone
+from subsetcate.recipe import assert_matches
 
 EVAL_SEED = 20260812
 D = 3

@@ -4,12 +4,10 @@ import sys
 from pathlib import Path
 
 import pytorch_lightning as pl
-from dotenv import load_dotenv
-from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.loggers import CSVLogger
 
-import wandb
-from metadentify.args import get_base_parser
-from metadentify.train import run_meta_training_pipeline
+from subsetcate.args import get_base_parser
+from subsetcate.train import run_meta_training_pipeline
 
 
 def load_user_module(filepath):
@@ -57,16 +55,7 @@ def main():
 
     experiment_setup = module.experiment_setup
 
-    load_dotenv()
-
-    if args.disable_wandb:
-        run = wandb.init(mode="disabled", config=vars(args))
-    else:
-        if not os.environ.get("WANDB_PROJECT") or not os.environ.get("WANDB_ENTITY"):
-            raise ValueError("WANDB_PROJECT and WANDB_ENTITY must be set in your .env file.")
-        run = wandb.init(config=vars(args))
-
-    config = dict(wandb.config)
+    config = dict(vars(args))
 
     pl.seed_everything(config["seed"], workers=True)
 
@@ -82,15 +71,15 @@ def main():
     else:
         setup_dict = setup_entry
 
-    logger = WandbLogger(log_model=True)
+    # Metrics are written as CSV under the checkpoint directory.
+    logger = CSVLogger(save_dir=config["checkpoint_dir"], name="metrics")
 
     model, datamodule, trainer = run_meta_training_pipeline(
-        config=config, setup_dict=setup_dict, logger=logger, run_id=run.id
+        config=config, setup_dict=setup_dict, logger=logger, run_id="run"
     )
 
     trainer.test(model, dataloaders=datamodule.test_dataloader(num_workers=0))
 
-    wandb.finish()
 
 
 if __name__ == "__main__":

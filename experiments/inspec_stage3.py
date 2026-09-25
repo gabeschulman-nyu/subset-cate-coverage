@@ -1,4 +1,4 @@
-"""Section 1 stage 3 (metadentify env): rho, m, sigma^2, coverage curve, breaking k.
+"""Section 1 stage 3 (subsetcate env): rho, m, sigma^2, coverage curve, breaking k.
 
 Coverage is measured the way the shipped estimator reports it: aggregate draws
 formed by averaging independently-sampled per-unit draws, interval = empirical
@@ -11,7 +11,7 @@ import json
 
 import numpy as np
 
-from metadentify.design_effect import from_per_unit_errors
+from subsetcate.design_effect import from_per_unit_errors
 
 RNG = np.random.default_rng(20260801)
 N_SUB = 24

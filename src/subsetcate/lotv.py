@@ -11,7 +11,7 @@ CONSTRUCTION via the law-of-total-variance shape of a subset mean:
 c_hat: the |S|->inf variance floor (shared/epistemic component);
 v_hat: the |S|=1 variance (single-unit component). Both softplus scalars
 read off the subset representation; |S| enters ARITHMETICALLY (computed
-from the mask, never inferred from tokens). The mechanism check this
+from the mask, never inferred from elements). The mechanism check this
 enables: additive families should learn v_hat ~= c_hat (k-invariant,
 correctly); hetero families v_hat > c_hat (real 1/|S| decay).
 """

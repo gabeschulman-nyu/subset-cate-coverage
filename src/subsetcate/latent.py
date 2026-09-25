@@ -1,7 +1,7 @@
 """Route A latent-variable machinery (Phase M6a): Gaussian latent heads.
 
 The latent z attaches at r_agg — the single per-dataset summary both backbones
-already compute (docs/metadentify_map.md §3). This module provides the two
+already compute (docs/subsetcate_map.md §3). This module provides the two
 heads and the KL; injection into the decoders is M6b, the ELBO is M6c.
 
 - Prior head:      p(z | ctx)      = N(μ_p, diag σ_p²),  from r_agg alone.

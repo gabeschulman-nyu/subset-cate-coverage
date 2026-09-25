@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import torch
 
-from metadentify.histogram import histogram_quantiles
+from subsetcate.histogram import histogram_quantiles
 
 
 def _masked_mean(values: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:

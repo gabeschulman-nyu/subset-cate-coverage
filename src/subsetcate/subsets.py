@@ -21,7 +21,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from metadentify.exact import covariate_names
+from subsetcate.exact import covariate_names
 
 TRAINING_ALLOWED_BACKENDS = ("uniform_random",)
 CORRELATED_STRATEGIES = ("propensity_stratum", "covariate_sign", "covariate_cell")

@@ -17,7 +17,7 @@ from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, Dataset, IterableDataset
 from tqdm import tqdm
 
-from metadentify.utils import set_worker_random_seed, set_worker_single_thread
+from subsetcate.utils import set_worker_random_seed, set_worker_single_thread
 
 
 class PicklableLambdaWrapper:
@@ -521,7 +521,7 @@ def _worker_generate_task(
         # than silently evaluated at the wrong value.
         spec = getattr(scm, "analytic_spec", None)
         if spec is not None and not getattr(spec, "unobs_conf_coef", 0.0):
-            from metadentify.exact import covariate_names
+            from subsetcate.exact import covariate_names
 
             cov_x = df_x_for_query[covariate_names(spec.num_covariates)].values
             task["propensity"] = torch.tensor(

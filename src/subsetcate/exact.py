@@ -37,7 +37,7 @@ from dowhy import gcm
 from scipy import stats
 from scipy.special import expit
 
-from metadentify.mechanisms import build_synthetic_causal_model
+from subsetcate.mechanisms import build_synthetic_causal_model
 
 PROPENSITY_FLOOR = 0.05
 PROPENSITY_SPAN = 0.90

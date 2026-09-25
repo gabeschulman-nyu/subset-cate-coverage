@@ -5,7 +5,6 @@
 run-experiment \
   --seed 2 \
   --experiment_setup_path experiments/exact_polynomial.py \
-  --disable_wandb \
   --experiment_name polynomial-confounder \
   --query_name ITE \
   --model_variant route_a \

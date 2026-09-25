@@ -12,7 +12,7 @@ design-effect form
 
 The bracket is the design effect. Independent aggregation is exactly the
 assumption that it equals 1: it reports sigma^2 / k. Substituting both into
-the coverage identity gives, for that estimator,
+the coverage formula gives, for that estimator,
 
     coverage(k) = 2 Phi( z / sqrt(1 + (k - 1) rho) ) - 1                         (2)
 
@@ -38,7 +38,7 @@ def from_per_unit_errors(e: np.ndarray) -> tuple[float, float]:
     """Direct estimator from a [tasks, units] array of per-unit errors.
 
     sigma^2 = mean of e^2; rho = mean over tasks of the average product of two
-    distinct units' errors, divided by sigma^2. Uses the identity
+    distinct units' errors, divided by sigma^2. Uses the equality
     sum_{i != i'} e_i e_i' = (sum e)^2 - sum e^2 to avoid the O(n^2) loop.
     """
     e = np.asarray(e, dtype=float)

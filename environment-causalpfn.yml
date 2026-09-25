@@ -1,0 +1,22 @@
+# Environment for the CausalPFN steps: per-unit draws on the benchmarks
+# (benchmarks/run_causalpfn_pit.py) and on the synthetic family
+# (experiments/inspec_stage2.py), and experiments/causalpfn_api_ate.py.
+# CausalPFN is used as released (pip package 0.1.4), without retraining.
+name: causalpfn
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10.20
+  - pip
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu121
+      - torch==2.5.1+cu121
+      - causalpfn==0.1.4
+      - numpy==2.2.6
+      - scipy==1.15.3
+      - pandas==2.3.3
+      - scikit-learn==1.7.2
+      - faiss-cpu==1.13.2
+      - huggingface_hub==1.11.0
+      - einops==0.8.2
+      - tqdm==4.67.3

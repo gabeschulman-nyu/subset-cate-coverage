@@ -9,17 +9,17 @@ import torch.nn as nn
 import torch.nn.functional as F
 from sklearn.metrics import r2_score
 
-from metadentify.baselines import get_baselines
-from metadentify.histogram import (
+from subsetcate.baselines import get_baselines
+from subsetcate.histogram import (
     bin_edges,
     clamp_fraction,
     histogram_loss,
     histogram_mean_var,
     histogram_quantiles,
 )
-from metadentify.latent import GaussianLatentHeads
-from metadentify.lotv import lotv_nll, lotv_split
-from metadentify.mdn import mdn_nll, mdn_quantiles
+from subsetcate.latent import GaussianLatentHeads
+from subsetcate.lotv import lotv_nll, lotv_split
+from subsetcate.mdn import mdn_nll, mdn_quantiles
 
 
 class CosineEmbeddingNetwork(nn.Module):
@@ -333,7 +333,7 @@ class CausalMetaModel(pl.LightningModule):
         return loss
 
     def _route_c2_loss(self, batch: dict[str, torch.Tensor]) -> torch.Tensor:
-        """C v2 multi-task loss: token-wise unit NLL (exact per-unit ITEs)
+        """C v2 multi-task loss: element-wise unit NLL (exact per-unit ITEs)
         + fml_lambda x functional NLL on an in-loss log-uniform-k subset
         (theta_S = masked mean of the exact per-unit targets)."""
         bb = self.backbone
@@ -1196,9 +1196,9 @@ class QCNP(nn.Module):
             # and inert under the fixed-N curriculum, recorded as such)
             n_feat = 1 if estimator_type == "lotv" else 0
             if variant == "route_c2":
-                # C v2 (user design): context-aware tokens (full self-attn)
-                # + two heads — functional (PMA over refined subset tokens)
-                # and per-unit (token-wise ITE histogram). Fixes v1's
+                # C v2 (user design): context-aware elements (full self-attn)
+                # + two heads — functional (PMA over refined subset elements)
+                # and per-unit (element-wise ITE histogram). Fixes v1's
                 # context starvation.
                 self.sa_layers = nn.ModuleList(
                     [MAB(embed_dim, embed_dim, num_heads=4) for _ in range(2)]
@@ -1230,8 +1230,8 @@ class QCNP(nn.Module):
                 # Route B (M5): decode conditions on the subset summary next
                 # to the full-context summary — the full dataset informs the
                 # mechanism, the subset specifies which functional.
-                # Route C (aggregate-token prototype): same as B EXCEPT the
-                # subset tokens pass through target-target self-attention
+                # Route C (aggregate-element prototype): same as B EXCEPT the
+                # subset elements pass through target-target self-attention
                 # (the deliberate M3-invariant relaxation — the only added
                 # mechanism) before the subset pool.
                 head_in = embed_dim * 2 if variant in ("route_b", "route_c") else embed_dim
@@ -1242,7 +1242,7 @@ class QCNP(nn.Module):
                     )
                     self.subset_pma = PMA(embed_dim, num_heads=4, num_seeds=1)
                 if variant == "route_c3":
-                    # C v3 (user spec): two-stream token-resolution attention.
+                    # C v3 (user spec): two-stream element-resolution attention.
                     # Context stream self-attends; query stream (the subset)
                     # self-attends AND cross-attends to the full context —
                     # no pooling until a single readout at the end; no r_agg
@@ -1340,7 +1340,7 @@ class QCNP(nn.Module):
         return self.unit_decoder(torch.cat([h, r_exp, z_exp], dim=-1))
 
     def _n_feature(self, x_features: torch.Tensor) -> torch.Tensor:
-        """log(N/500) context-size feature (lotv head): the 'token for N'.
+        """log(N/500) context-size feature (lotv head): the 'element for N'.
         Constant under the fixed-N=500 curriculum — inert until variable-N
         training exists."""
         import math
@@ -1368,18 +1368,18 @@ class QCNP(nn.Module):
 
         if self.estimator_type in ("histogram", "mixture", "lotv"):
             if self.variant == "route_c2":
-                tokens = encoded_ctx
+                elements = encoded_ctx
                 for layer in self.sa_layers:
-                    tokens = layer(tokens, tokens)  # full self-attention
-                r_ctx = tokens.mean(dim=1)
+                    elements = layer(elements, elements)  # full self-attention
+                r_ctx = elements.mean(dim=1)
                 if subset_mask is not None:
-                    # functional head: PMA over refined SUBSET tokens
-                    r_s = self.subset_pma(tokens, x_mask=~subset_mask).squeeze(1)
+                    # functional head: PMA over refined SUBSET elements
+                    r_s = self.subset_pma(elements, x_mask=~subset_mask).squeeze(1)
                     return self.func_decoder(torch.cat([r_ctx, r_s], dim=-1))
-                # per-unit head over all refined tokens: [B, n_ctx, nbins]
-                n = tokens.size(1)
+                # per-unit head over all refined elements: [B, n_ctx, nbins]
+                n = elements.size(1)
                 r_exp = r_ctx.unsqueeze(1).expand(-1, n, -1)
-                return self.unit_head(torch.cat([tokens, r_exp], dim=-1))
+                return self.unit_head(torch.cat([elements, r_exp], dim=-1))
             if self.variant == "route_a":
                 if z is None:
                     mu_p, sigma_p = self.latent_heads.prior(r_agg)
@@ -1396,7 +1396,7 @@ class QCNP(nn.Module):
                     # padded [B, k_max, E] tensor. Exactness invariant: subset
                     # rows never read non-subset q-rows (self-attn keys are
                     # subset-only, cross-attn keys are ctx, MAB LN/FFN are
-                    # per-token), so dropping the non-subset rows — which the
+                    # per-element), so dropping the non-subset rows — which the
                     # final PMA masked out anyway — changes nothing.
                     k = subset_mask.sum(dim=1)
                     k_max = max(int(k.max()), 1)
@@ -1426,7 +1426,7 @@ class QCNP(nn.Module):
                 if self.variant == "route_c":
                     if subset_mask is None:
                         raise ValueError("route_c forward requires subset_mask")
-                    # target-target self-attention among subset tokens: keys
+                    # target-target self-attention among subset elements: keys
                     # restricted to the subset; PMA pool over the subset.
                     exclude = ~subset_mask  # True = masked out of attention
                     attended = encoded_ctx

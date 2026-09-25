@@ -1,36 +1,32 @@
-# Conda environment for the paper's code.
-#
-# Conda supplies the interpreter, pip, and the graphviz binary; the rest
-# comes from pip. CUDA PyTorch is pinned to the cu121 wheel index rather
-# than the conda CUDA build: cu121 wheels cover V100/A100/L40S, and
-# dowhy 0.14 requires numpy>2.
-name: metadentify
+# Environment for training, evaluation, figures and tables. Versions are the
+# ones that produced the paper's results. CUDA PyTorch comes from the cu121
+# wheel index; for a CPU-only machine (enough for `make verify`), replace the
+# torch line with torch==2.5.1 and drop the index line.
+name: subsetcate
 channels:
   - conda-forge
 dependencies:
   - python=3.10.16
   - pip=24.3.1
-  - graphviz  # dot binary for dowhy graph rendering; python bindings via pip
+  - graphviz
   - pip:
       - --extra-index-url https://download.pytorch.org/whl/cu121
       - torch==2.5.1+cu121
       - numpy==2.2.6
-      - cloudpickle>=3.1.2
-      - dowhy>=0.14.0
-      - econml>=0.16.0
-      - filelock>=3.0.0
-      - graphviz>=0.20.0
-      - joblib>=1.2.0
-      - matplotlib>=3.7.1
-      - networkx>=3.0
-      - pandas>=2.0.0
-      - pillow>=9.0.0
-      - python-dotenv>=1.2.2
-      - pytorch-lightning>=2.0.0
-      - scikit-learn>=1.2.0
-      - scipy>=1.10.1
-      - seaborn>=0.12.2
-      - tqdm>=4.65.0
-      - wandb>=0.17.0
-      - pytest>=8.0.0
-      - ruff>=0.5.0
+      - scipy==1.15.3
+      - pandas==2.3.3
+      - scikit-learn==1.6.1
+      - matplotlib==3.10.9
+      - seaborn==0.13.2
+      - pytorch-lightning==2.6.5
+      - torchmetrics==1.9.0
+      - dowhy==0.14
+      - econml==0.16.0
+      - networkx==3.4.2
+      - cloudpickle==3.1.2
+      - filelock==3.29.7
+      - graphviz==0.21
+      - joblib==1.5.3
+      - pillow==12.3.0
+      - tqdm==4.68.4
+      - pytest==9.1.1

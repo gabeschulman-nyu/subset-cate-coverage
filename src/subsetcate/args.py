@@ -7,12 +7,9 @@ def get_base_parser(description: str = "") -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--experiment_setup_path", type=str, default="")
     parser.add_argument("--config_path", type=str, default="config.py")
-    parser.add_argument("--wandb_project", type=str, default="")
-    parser.add_argument("--wandb_entity", type=str, default="")
     parser.add_argument("--progress_bar", action="store_true")
     parser.add_argument("--savelast", action="store_true")
     parser.add_argument("--overwrite_data", default=True, action=argparse.BooleanOptionalAction)
-    parser.add_argument("--disable_wandb", action="store_true")
 
     parser.add_argument("--experiment_name", type=str, required=True)
     parser.add_argument("--query_name", type=str, default="PATE")

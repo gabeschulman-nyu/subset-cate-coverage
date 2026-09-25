@@ -23,7 +23,7 @@ import os
 
 import numpy as np
 
-from metadentify.design_effect import from_per_unit_errors
+from subsetcate.design_effect import from_per_unit_errors
 
 from benchmark_targets import target
 

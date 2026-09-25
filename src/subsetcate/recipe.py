@@ -56,7 +56,7 @@ FREE = frozenset({
     "model_variant", "estimator_type", "mdn_components", "seed",
     "checkpoint_dir", "ckpt_monitor", "effect_scale", "overlap_floor",
     "overlap_sharpness", "unobs_conf_coef", "unobs_noise_coef",
-    "covariate_corr", "outcome_noise_scale", "disable_wandb",
+    "covariate_corr", "outcome_noise_scale",
     # Structural per arm, not a free choice: route_a trains on per-unit ITE
     # targets and train.py rejects a GATE query for it, so the subset-decode
     # arms and the latent arm necessarily differ here.

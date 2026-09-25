@@ -83,8 +83,8 @@ def collect(recipe_only=True):
     # selection ARE the same measurement, whatever they are called. A
     # re-scored cell (a verification rerun, say) would otherwise enter the
     # pool twice and be counted twice, which is how a regression check of
-    # this very script once added six points to the R<1 count. Identity is
-    # taken from content, not from the filename.
+    # this very script once added six points to the R<1 count. A cell is
+    # recognised by its content, not by its filename.
     seen = set()
     # Which cells count is defined in experiments/artifacts.py, so the
     # figure and the release build cannot disagree about it.

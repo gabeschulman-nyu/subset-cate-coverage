@@ -8,7 +8,6 @@
   "config_path": "config.py",
   "dataset_size": 500,
   "deterministic_datagen": true,
-  "disable_wandb": true,
   "dropout": 0.0,
   "effect_scale": 0.35,
   "embed_dim": 128,
@@ -76,8 +75,6 @@
   "unobs_noise_coef": 0.0,
   "use_lr_scheduler": true,
   "val_metrics_normalized": true,
-  "wandb_entity": "",
-  "wandb_project": "",
   "weight_decay": 0.0,
   "z_spread_draws": 8
 }

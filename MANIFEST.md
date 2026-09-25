@@ -112,7 +112,7 @@ latent NP, both at n=500; `lad` is a pool-fraction ladder and the
 digits are that fraction (`lad025` = 0.25), with a leading `b`, `e`,
 `o` or `l` naming the rule it walks (neighbour ball, effect-top,
 effect-oracle, or the latent NP's propensity ladder); `corr` marks
-the covariate-quartile rule and `soft` evaluation at soft overlap;
+the covariate-quartile rule and `soft` evaluation at overlap s=4;
 `n2krepro` cells are the n=2000 table's.
 
 | tag family | arm | head | n | subset selection | pool fraction | seeds |

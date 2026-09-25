@@ -1,4 +1,4 @@
-"""Section 1 stage 1 (metadentify env): in-spec task generation.
+"""Section 1 stage 1 (subsetcate env): in-spec task generation.
 
 All settings keep CausalPFN's assumptions: no unobserved confounding, positivity
 holds (propensity bounded away from 0/1), exact targets. Dials are sample size n,
@@ -10,8 +10,8 @@ import argparse
 
 import numpy as np
 
-from metadentify.exact import make_polynomial_prior_fn
-from metadentify.mixture import (
+from subsetcate.exact import make_polynomial_prior_fn
+from subsetcate.mixture import (
     CausalMixtureDistribution,
     set_worker_random_seed,
     set_worker_single_thread,
