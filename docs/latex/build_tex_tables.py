@@ -164,7 +164,11 @@ def threearm_table():
             ok = ~np.isnan(v)
             if ok.sum() < 2:
                 continue
-            rows.append((title, m, int(ks[ok][-1]), arm_label[key],
+            # The CNP's own output is SCM-marginalized; the interval
+            # corrected here is its unit-level one, so say which.
+            label = ("unit-level" if key == "A" and title.startswith("CNP")
+                     else arm_label[key])
+            rows.append((title, m, int(ks[ok][-1]), label,
                          v[ok][0], v[ok][-1]))
     body = []
     for i, (t, m, k1, arm, c0, c1) in enumerate(rows):
@@ -190,7 +194,8 @@ def threearm_table():
         "\n\\bottomrule\n\\end{tabular}\n"
         "\\caption{Coverage of the three intervals of "
         "Appendix~\\ref{app:correction} at the smallest and largest subset in "
-        "each setting. The \\emph{$+$ design effect} interval uses $\\rho_S$ "
+        "each setting. $k_{\\max}$ is the largest evaluated subset size within "
+        "the pool. The \\emph{$+$ design effect} interval uses $\\rho_S$ "
         "and $m_S$ measured against the true effects and is not available in "
         "practice.}\n"
         "\\label{tab:threearm}\n\\end{table}\n")
@@ -267,9 +272,9 @@ for dgp, fn, tag, rule, rungs in LADDERS:
     rows_ss, align="lrrrrr",
     caption="Subset selection rules on CausalPFN at $n=500$, with "
             "intervals formed by unit-level aggregation, over $64$ tasks with "
-            "$48$ subsets per task. $k_{\\max}$ is the size of the pool a rule "
-            "selects and $1+(k_{\\max}\\!-\\!1)\\rho_S$ the largest design "
-            "effect reachable within it; ``---'' means coverage never falls "
+            "$48$ subsets per task. $k_{\\max}$ is the largest evaluated subset "
+            "size within the pool and $1+(k_{\\max}\\!-\\!1)\\rho_S$ the design "
+            "effect at that size; ``---'' means coverage never falls "
             "below nominal within the pool. " + KHAT_XREF,
     label="tab:subset-selection"))
 
@@ -337,7 +342,8 @@ _legend = f"; {_legend}" if _legend else ""
     ["benchmark", "$n$", "$\\rho_S$", "$m_S$", "nRMSE", "cov at $k$=$n$",
      "se", "$\\hat k^*$ ($\\hat k^*/n$)"], rows4,
     align="lrrrrrrr",
-    caption="The benchmarks of Figure~\\ref{fig:benchmarks}: CausalPFN with "
+    caption="The benchmarks of Figure~\\ref{fig:benchmarks} and the "
+            "heavy-tailed variant of Hill-B, which the figure omits: CausalPFN with "
             "its temperature calibration, unit-level aggregation, subsets drawn "
             "uniformly at random, 40 datasets per benchmark. " + KHAT_DEF + ", with "
             "$\\hat k^*/n$ as a percentage of the sample" + _legend + ". "
@@ -389,7 +395,9 @@ for _tag in artifacts.NSWEEP_TAGS:
     _NS, align="lrrrrr",
     caption="CausalPFN on the synthetic family of "
             "Appendix~\\ref{app:dgps} at five sample sizes, with subsets drawn "
-            "uniformly at random, 64 tasks and 48 subsets per task. The same "
+            "uniformly at random, 64 tasks and 48 subsets per task; coverage "
+            "at $k=n$ is given $\\pm$ one standard error clustered by task. "
+            "The same "
             "CausalPFN model is used throughout, so no training choice varies "
             "down the table. "
             "$1+(n-1)\\rho_S$ is the design effect at the full sample; ``---'' "
