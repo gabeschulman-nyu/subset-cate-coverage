@@ -75,10 +75,13 @@ def main():
     ax.set_ylabel("coverage of nominal 95% interval")
     ax.legend(loc="lower left", ncol=2, columnspacing=1.1, handletextpad=0.5)
     ax.set_ylim(0.10, 1.03)
-    # k = n is the ATE, which the caption names; mark it where the reader
-    # looks, just above the axis, at tick-label size.
-    ax.text(1.0, 0.012, "ATE", transform=ax.get_xaxis_transform(),
-            ha="center", va="bottom", fontsize=plt.rcParams["xtick.labelsize"])
+    # k = n is the full sample, as the caption says; mark it where the
+    # reader looks, just above the axis, at tick-label size. Right-aligned
+    # inside the frame: centred on k/n = 1 it would cross the frame, and at
+    # this width its centre still sits over k/n = 1.
+    ax.annotate("full sample", xy=(1.0, 0.012), xycoords="axes fraction",
+                xytext=(-2, 0), textcoords="offset points", ha="right",
+                va="bottom", fontsize=plt.rcParams["xtick.labelsize"])
     figstyle.save(fig, OUT)
     print(f"{'benchmark':15s} {'n':>5s} {'rho_S':>8s} {'m_S':>6s} "
           f"{'k*':>6s} {'k*/n':>7s} {'cov@n':>7s}")
