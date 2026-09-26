@@ -108,6 +108,21 @@ per setting.
    `experiments/benchmark_targets.py` recomputes it with
    `benchmarks/sim_lib.py` and refuses any target equal to y1 - y0.
 
+## Notes on our models
+
+- The package contains only the model variants the paper uses: the CNP
+  (`route_b`, one-component mixture head), the latent NP (`route_a`), and the
+  two models behind Table 5 (`route_b` with a histogram head, and the
+  unit-level-only `vanilla` model). The command-line parser still lists the
+  options of variants that were removed, so that the recorded configurations
+  parse; selecting a removed variant raises an error.
+- The latent NP is trained with `route_a_objective: combined` (Appendix B).
+  Its configurations also record `kl_free_bits` and `kl_warmup_steps`; the
+  combined objective ignores both, because it has no KL term.
+- The latent NP's checkpoints contain a posterior network over the latent,
+  which is used neither in training nor at inference. It is kept so that the
+  checkpoints load.
+
 ## Notes on CausalPFN
 
 - On the benchmarks CausalPFN runs with its built-in temperature calibration

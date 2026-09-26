@@ -45,9 +45,8 @@ def get_base_parser(description: str = "") -> argparse.ArgumentParser:
     parser.add_argument("--mdn_components", type=int, default=5)
     parser.add_argument("--mdn_min_sigma", type=float, default=1e-3)
     parser.add_argument("--ckpt_monitor", type=str, default=None)
-    # Post-hoc conformal rescale for gaussian/quantile heads. On by default to
-    # preserve prior behaviour; turn off for like-for-like head comparisons,
-    # since no density head receives it.
+    # Post-hoc conformal rescale for the gaussian/quantile heads, which this
+    # release does not include; kept so that recorded configurations parse.
     parser.add_argument("--post_hoc_calibrate", type=lambda v: str(v).lower()
                         not in ("0", "false", "no"), default=True)
     parser.add_argument("--embed_dim", type=int, default=64)

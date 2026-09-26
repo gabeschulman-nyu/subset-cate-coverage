@@ -27,7 +27,6 @@ function signatures match ``mixture._worker_generate_task`` expectations.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 
 import networkx as nx
@@ -143,46 +142,6 @@ class PolynomialSCMSpec:
         return y_treated - y_control
 
 
-@dataclass(frozen=True)
-class HeteroskedasticSCMSpec(PolynomialSCMSpec):
-    """Non-additive family (M7): treatment x noise interaction.
-
-        lam(x) = lambda_scale * expit(b_l + phi @ w_l)   (in (0, lambda_scale))
-        y      = mu0(x) + t * tau(x) + (1 + t * lam(x)) * u,  u ~ N(0, sigma^2)
-
-    ITE = tau(X) + lam(X) * u genuinely depends on the unit's realized noise:
-    the within-function variance term is NONZERO and SATE != mean-CATE, so
-    the abduction machinery is load-bearing. Abduction stays exact: u = (y - mu0 - t*tau) / (1 + t*lam),
-    and 1 + t*lam >= 1 always (lam > 0, t in {0,1}).
-
-    Closed forms survive: CATE(x) = E[ITE|x] = tau(x) (E[u]=0), PATE =
-    E[tau(X)] — identical formulas to the additive family; only the
-    counterfactual path changes.
-    """
-
-    lambda_weights: np.ndarray = None
-    lambda_intercept: float = 0.0
-    lambda_scale: float = 1.0
-
-    def lam(self, X: np.ndarray) -> np.ndarray:
-        logits = self.lambda_intercept + self._basis(X) @ self.lambda_weights
-        return self.lambda_scale * expit(logits)
-
-    def abduct_outcome_noise(
-        self, X: np.ndarray, t: np.ndarray, y: np.ndarray
-    ) -> np.ndarray:
-        t = np.asarray(t, dtype=np.float64)
-        resid = np.asarray(y, dtype=np.float64) - (self.mu0(X) + t * self.tau(X))
-        return resid / (1.0 + t * self.lam(X))
-
-    def ite_from_observed(
-        self, X: np.ndarray, t: np.ndarray, y: np.ndarray
-    ) -> np.ndarray:
-        """y(1) - y(0) = tau(X) + lam(X) * u — noise does NOT cancel."""
-        u = self.abduct_outcome_noise(X, t, y)
-        return self.tau(X) + self.lam(X) * u
-
-
 def sample_polynomial_spec(
     num_covariates: int,
     outcome_noise_scale: float = 0.25,
@@ -215,28 +174,6 @@ def sample_polynomial_spec(
         overlap_span=1.0 - 2.0 * overlap_floor,
         overlap_sharpness=overlap_sharpness,
         covariate_corr=covariate_corr,
-    )
-
-
-def sample_hetero_spec(
-    num_covariates: int,
-    outcome_noise_scale: float = 0.25,
-    lambda_scale: float = 1.0,
-) -> HeteroskedasticSCMSpec:
-    if not 1 <= num_covariates <= MAX_COVARIATES:
-        raise ValueError(f"num_covariates must be in [1, {MAX_COVARIATES}]")
-    two_d = 2 * num_covariates
-    return HeteroskedasticSCMSpec(
-        baseline_weights=np.random.normal(scale=0.5, size=two_d),
-        baseline_intercept=0.0,
-        effect_weights=np.random.normal(scale=0.35, size=two_d),
-        effect_intercept=0.25,
-        propensity_weights=np.random.normal(scale=0.35, size=two_d),
-        propensity_intercept=0.0,
-        outcome_noise_scale=outcome_noise_scale,
-        lambda_weights=np.random.normal(scale=0.35, size=two_d),
-        lambda_intercept=0.0,
-        lambda_scale=lambda_scale,
     )
 
 
@@ -349,63 +286,6 @@ def make_polynomial_prior_fn(
     return prior_fn
 
 
-def build_hetero_scm(spec: HeteroskedasticSCMSpec) -> gcm.InvertibleStructuralCausalModel:
-    """Materialize the heteroskedastic spec as a gcm SCM.
-
-    The multiplicative noise is expressed additively for gcm by promoting u
-    to an explicit ROOT NODE ``u_y`` (N(0, sigma)) and making y a
-    DETERMINISTIC function of (t, u_y, x_*). Everything downstream (mixture
-    sampling, interventional_samples, even gcm counterfactuals — root-node
-    abduction is trivial and y has zero own-noise) stays exact. ``u_y`` is
-    simply never listed among observed_feature_names.
-    """
-    d = spec.num_covariates
-    x_names = covariate_names(d)
-    graph = nx.DiGraph(
-        [(x, "t") for x in x_names]
-        + [(x, "y") for x in x_names]
-        + [("t", "y"), ("u_y", "y")]
-    )
-
-    def t_function(parents: np.ndarray) -> np.ndarray:
-        # Parents sorted: x_1..x_d
-        p = spec.propensity(parents)
-        return np.random.binomial(n=1, p=p).astype(np.float64)
-
-    def y_function(parents: np.ndarray) -> np.ndarray:
-        # Parents sorted alphabetically: t, u_y, x_1..x_d
-        t, u, X = parents[:, 0], parents[:, 1], parents[:, 2:]
-        return spec.mu0(X) + t * spec.tau(X) + (1.0 + t * spec.lam(X)) * u
-
-    node_function_dict: dict = {
-        name: (None, gcm.ScipyDistribution(stats.norm, loc=0, scale=1)) for name in x_names
-    }
-    node_function_dict["u_y"] = (
-        None,
-        gcm.ScipyDistribution(stats.norm, loc=0, scale=spec.outcome_noise_scale),
-    )
-    node_function_dict["t"] = (t_function, None)
-    node_function_dict["y"] = (y_function, None)  # deterministic given parents
-
-    scm = build_synthetic_causal_model(
-        causal_graph=graph, node_function_dict=node_function_dict
-    )
-    scm.analytic_spec = spec
-    return scm
-
-
-def make_hetero_prior_fn(
-    num_covariates: int,
-    outcome_noise_scale: float = 0.25,
-    lambda_scale: float = 1.0,
-):
-    def prior_fn() -> gcm.InvertibleStructuralCausalModel:
-        spec = sample_hetero_spec(num_covariates, outcome_noise_scale, lambda_scale)
-        return build_hetero_scm(spec)
-
-    return prior_fn
-
-
 def _get_spec(causal_model: gcm.ProbabilisticCausalModel) -> PolynomialSCMSpec:
     spec = getattr(causal_model, "analytic_spec", None)
     if spec is None:
@@ -495,16 +375,3 @@ def make_exact_state_query_fn(outcome_name: str = "y", treatment_name: str = "t"
 # ---- MC fallback budget (families without closed forms) ----
 
 
-def required_mc_samples(
-    target_sd: float, expected_half_width: float, budget_frac: float = 0.1
-) -> int:
-    """Smallest M with SE(M) = target_sd/sqrt(M) below budget_frac of the
-    smallest expected interval half-width. Callers must log the chosen M and
-    the implied SE alongside the run config."""
-    if target_sd <= 0 or expected_half_width <= 0 or budget_frac <= 0:
-        raise ValueError("target_sd, expected_half_width, budget_frac must be positive")
-    return int(math.ceil((target_sd / (budget_frac * expected_half_width)) ** 2))
-
-
-def implied_mc_se(target_sd: float, num_mc_samples: int) -> float:
-    return target_sd / math.sqrt(num_mc_samples)

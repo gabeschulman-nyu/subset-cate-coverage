@@ -13,7 +13,6 @@ from subsetcate.exact import (
     make_exact_ite_query_fn,
     make_exact_pate_query_fn,
     make_exact_state_query_fn,
-    make_hetero_prior_fn,
     make_polynomial_prior_fn,
 )
 from subsetcate.mixture import CausalMixtureDistribution
@@ -74,20 +73,6 @@ def _build_setup(config, prior_fn, experiment_name):
     }
 
 
-def _build_hetero_setup(config):
-    """Non-additive family (M7): ITE depends on realized noise, so
-    SATE != mean-CATE and the abduction path is load-bearing."""
-    return _build_setup(
-        config,
-        make_hetero_prior_fn(
-            num_covariates=config["num_covariates"],
-            outcome_noise_scale=config["outcome_noise_scale"],
-            lambda_scale=config["lambda_scale"],
-        ),
-        "polynomial-hetero",
-    )
-
-
 def _build_polynomial_setup(config):
     d = config["num_covariates"]
     noise_scale = config["outcome_noise_scale"]
@@ -129,5 +114,4 @@ def _build_polynomial_setup(config):
 
 experiment_setup = {
     "polynomial-confounder": _build_polynomial_setup,
-    "polynomial-hetero": _build_hetero_setup,
 }

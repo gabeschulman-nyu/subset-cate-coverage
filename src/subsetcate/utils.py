@@ -25,13 +25,6 @@ def set_worker_random_seed(seed=None):
     torch.manual_seed(seed)
 
 
-def disjoint_uniform(low_left, high_left, low_right, high_right, size):
-    which_side = np.random.uniform(low=0, high=1, size=size) < 0.5
-    return np.random.uniform(
-        low=low_left, high=high_left, size=size
-    ) * which_side + np.random.uniform(low=low_right, high=high_right, size=size) * (1 - which_side)
-
-
 def get_available_cpus() -> int:
     slurm_cpus = os.environ.get("SLURM_CPUS_ON_NODE")
     if slurm_cpus:

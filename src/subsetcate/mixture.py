@@ -7,11 +7,9 @@ from typing import Any, AnyStr
 
 import cloudpickle
 import dowhy.gcm as gcm
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
-import seaborn as sns
 import torch
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, Dataset, IterableDataset
@@ -34,94 +32,8 @@ class PicklableLambdaWrapper:
         self.func = cloudpickle.loads(state)
 
 
-def _draw_emp(n: int, data: pd.DataFrame) -> pd.DataFrame:
-    return data.sample(n=n, replace=True).reset_index(drop=True)
-
-
 def _draw_obs(n: int, causal_model: gcm.ProbabilisticCausalModel) -> pd.DataFrame:
     return gcm.draw_samples(causal_model, num_samples=n)
-
-
-def _draw_int(
-    n: int,
-    causal_model: gcm.ProbabilisticCausalModel,
-    intervention: dict[str, Callable],
-) -> pd.DataFrame:
-    return gcm.interventional_samples(
-        causal_model, interventions=intervention, num_samples_to_draw=n
-    )
-
-
-def _draw_cf(
-    n: int,
-    causal_model: gcm.ProbabilisticCausalModel,
-    evidence_data: pd.DataFrame,
-    hypothetical_intervention: dict[str, Callable],
-) -> pd.DataFrame:
-    evidence_batch = evidence_data.sample(n=n, replace=True)
-    return gcm.counterfactual_samples(
-        causal_model,
-        observed_data=evidence_batch,
-        interventions=hypothetical_intervention,
-    ).reset_index(drop=True)
-
-
-def _draw_paired_cf(
-    n: int,
-    causal_model: gcm.ProbabilisticCausalModel,
-    evidence_data: pd.DataFrame,
-    hypothetical_intervention: dict[str, Callable],
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    if n == 0:
-        return pd.DataFrame(), pd.DataFrame()
-
-    n_pairs = (n + 1) // 2
-    observed_batch = evidence_data.sample(n=n_pairs, replace=True).reset_index(drop=True)
-    cf_batch = gcm.counterfactual_samples(
-        causal_model,
-        observed_data=observed_batch,
-        interventions=hypothetical_intervention,
-    ).reset_index(drop=True)
-
-    observed_batch["pair_id"] = np.arange(n_pairs)
-    cf_batch["pair_id"] = np.arange(n_pairs)
-
-    if n % 2 != 0:
-        cf_batch = cf_batch.iloc[:-1]
-
-    return observed_batch, cf_batch
-
-
-def _draw_paired_int(
-    n: int,
-    causal_model: gcm.ProbabilisticCausalModel,
-    evidence_data: pd.DataFrame,
-    intervention: dict[str, Callable],
-    observed_variable_names: list[str] = None,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    if n == 0:
-        return pd.DataFrame(), pd.DataFrame()
-
-    n_pairs = (n + 1) // 2
-    observed_batch = evidence_data.sample(n=n_pairs, replace=True).reset_index(drop=True)
-
-    if observed_variable_names is not None:
-        batch_to_condition_on = gcm.draw_samples(causal_model=causal_model, num_samples=n_pairs)
-        batch_to_condition_on[observed_variable_names] = observed_batch[observed_variable_names]
-    else:
-        batch_to_condition_on = observed_batch
-
-    int_batch = gcm.interventional_samples(
-        causal_model, interventions=intervention, observed_data=batch_to_condition_on
-    ).reset_index(drop=True)
-
-    batch_to_condition_on["pair_id"] = np.arange(n_pairs)
-    int_batch["pair_id"] = np.arange(n_pairs)
-
-    if n % 2 != 0:
-        int_batch = int_batch.iloc[:-1]
-
-    return batch_to_condition_on, int_batch
 
 
 class CausalMixtureDistribution:
@@ -132,11 +44,6 @@ class CausalMixtureDistribution:
         self.names: list[str] = []
         self.component_source_counts: list[int] = []
 
-    def add_empirical(self, data: pd.DataFrame, weight: float, name: str = "Empirical") -> None:
-        self.components.append(partial(_draw_emp, data=data))
-        self.weights.append(weight)
-        self.names.append(name)
-        self.component_source_counts.append(1)
 
     def add_observational(self, weight: float, name: str = "Observational") -> None:
         self.components.append(partial(_draw_obs, causal_model=self.causal_model))
@@ -144,93 +51,6 @@ class CausalMixtureDistribution:
         self.names.append(name)
         self.component_source_counts.append(1)
 
-    def add_interventional(
-        self,
-        intervention: dict[str, Callable],
-        weight: float,
-        name: str = "Interventional",
-    ) -> None:
-        picklable_intervention = {k: PicklableLambdaWrapper(v) for k, v in intervention.items()}
-        self.components.append(
-            partial(
-                _draw_int,
-                causal_model=self.causal_model,
-                intervention=picklable_intervention,
-            )
-        )
-        self.weights.append(weight)
-        self.names.append(name)
-        self.component_source_counts.append(1)
-
-    def add_counterfactual(
-        self,
-        evidence_data: pd.DataFrame,
-        hypothetical_intervention: dict[str, Callable],
-        weight: float,
-        name: str = "Counterfactual",
-    ) -> None:
-        picklable_intervention = {
-            k: PicklableLambdaWrapper(v) for k, v in hypothetical_intervention.items()
-        }
-        self.components.append(
-            partial(
-                _draw_cf,
-                causal_model=self.causal_model,
-                evidence_data=evidence_data,
-                hypothetical_intervention=picklable_intervention,
-            )
-        )
-        self.weights.append(weight)
-        self.names.append(name)
-        self.component_source_counts.append(1)
-
-    def add_paired_counterfactual(
-        self,
-        evidence_data: pd.DataFrame,
-        hypothetical_intervention: dict[str, Callable],
-        weight: float,
-        names: list[str] | None = None,
-    ) -> None:
-        if names is None:
-            names = ["PairedEmpirical", "PairedCounterfactual"]
-        picklable_intervention = {
-            k: PicklableLambdaWrapper(v) for k, v in hypothetical_intervention.items()
-        }
-        self.components.append(
-            partial(
-                _draw_paired_cf,
-                causal_model=self.causal_model,
-                evidence_data=evidence_data,
-                hypothetical_intervention=picklable_intervention,
-            )
-        )
-        self.weights.append(weight)
-        self.names.extend(names)
-        self.component_source_counts.append(len(names))
-
-    def add_paired_interventional(
-        self,
-        evidence_data: pd.DataFrame,
-        intervention: dict[str, Callable],
-        weight: float,
-        names: list[str] | None = None,
-        observed_variable_names: list[str] = None,
-    ) -> None:
-        if names is None:
-            names = ["PairedEmpirical", "PairedInterventional"]
-        picklable_intervention = {k: PicklableLambdaWrapper(v) for k, v in intervention.items()}
-        self.components.append(
-            partial(
-                _draw_paired_int,
-                causal_model=self.causal_model,
-                evidence_data=evidence_data,
-                intervention=picklable_intervention,
-                observed_variable_names=observed_variable_names,
-            )
-        )
-        self.weights.append(weight)
-        self.names.extend(names)
-        self.component_source_counts.append(len(names))
 
     def sample_batch(self, total_samples: int) -> pd.DataFrame:
         if not self.components:
@@ -256,37 +76,6 @@ class CausalMixtureDistribution:
             source_idx += num_sources
 
         return pd.concat(batch_pieces, ignore_index=True)
-
-    def plot_covariate(
-        self,
-        covariate_name: str,
-        sample_df: pd.DataFrame | None = None,
-        num_samples: int | None = None,
-    ) -> None:
-        if sample_df is None and num_samples is None:
-            raise ValueError("Must specify either sample_df or num_samples")
-        if sample_df is None:
-            sample_df = self.sample_batch(total_samples=num_samples)
-        num_legend_cols = min(len(sample_df["source_component"].unique()), 3)
-        plt.figure(figsize=(4, 2))
-        name_mapping = dict(enumerate(self.names))
-        g = sns.histplot(
-            data=sample_df.assign(source_component=sample_df["source_component"].map(name_mapping)),
-            x=covariate_name,
-            hue="source_component",
-            kde=True,
-            stat="density",
-            linewidth=0.5,
-        )
-        sns.move_legend(
-            obj=g,
-            loc="lower center",
-            bbox_to_anchor=(0.5, -0.65),
-            ncol=num_legend_cols,
-            title=None,
-            frameon=False,
-        )
-        plt.show()
 
 
 class LazyOfflineCausalDataset(Dataset):
@@ -772,75 +561,6 @@ class OnlineCausalDataModule(pl.LightningDataModule):
             self.test_ds,
             batch_size=self.batch_size,
             num_workers=nw,
-            pin_memory=torch.cuda.is_available(),
-            persistent_workers=nw > 0,
-        )
-        if self.empirical_ds is not None:
-            empirical_dl = DataLoader(
-                self.empirical_ds,
-                batch_size=1,
-                num_workers=nw,
-                shuffle=False,
-                pin_memory=torch.cuda.is_available(),
-                persistent_workers=nw > 0,
-            )
-            return [simulated_dl, empirical_dl]
-        else:
-            return simulated_dl
-
-
-class OfflineCausalDataModule(pl.LightningDataModule):
-    def __init__(
-        self,
-        data_dir: str,
-        batch_size: int = 32,
-        num_workers: int = 0,
-        empirical_data_dir: str | None = None,
-        empirical_parser_fn: Callable[[pd.DataFrame], dict[str, torch.Tensor]] | None = None,
-        empirical_max_len: int | None = None,
-    ) -> None:
-        super().__init__()
-        self.data_dir = Path(data_dir)
-        self.batch_size = batch_size
-        self.num_workers = num_workers
-        self.empirical_data_dir = empirical_data_dir
-        self.empirical_parser_fn = empirical_parser_fn
-        self.empirical_max_len = empirical_max_len
-
-    def setup(self, stage=None):
-        self.train_ds = LazyOfflineCausalDataset(self.data_dir / "train", cache_size=8)
-        self.val_ds = LazyOfflineCausalDataset(self.data_dir / "val", cache_size=4)
-        self.test_ds = LazyOfflineCausalDataset(self.data_dir / "test", cache_size=4)
-
-        self.empirical_ds = None
-
-    def train_dataloader(self):
-        return DataLoader(
-            self.train_ds,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            shuffle=False,
-            pin_memory=torch.cuda.is_available(),
-            persistent_workers=self.num_workers > 0,
-        )
-
-    def val_dataloader(self):
-        return DataLoader(
-            self.val_ds,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            shuffle=False,
-            pin_memory=torch.cuda.is_available(),
-            persistent_workers=self.num_workers > 0,
-        )
-
-    def test_dataloader(self, num_workers: int | None = None) -> DataLoader | list[DataLoader]:
-        nw = num_workers if num_workers is not None else self.num_workers
-        simulated_dl = DataLoader(
-            self.test_ds,
-            batch_size=self.batch_size,
-            num_workers=nw,
-            shuffle=False,
             pin_memory=torch.cuda.is_available(),
             persistent_workers=nw > 0,
         )

@@ -1,4 +1,4 @@
-"""Mixture-density output head for the direct-decode arms (route_b, route_c3).
+"""Mixture-density output head for the direct-decode arm (route_b).
 
 The histogram likelihood head that route_a's ELBO requires imposes a width
 floor ~ 2*1.96*sigma_eff on every predictive interval (the sigma-sweep

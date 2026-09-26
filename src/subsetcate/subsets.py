@@ -4,12 +4,8 @@ A subset sampler draws a boolean membership mask over the context rows of one
 task; the task's target is then the exact SATE over the masked rows
 (GATE-over-subset, computed by the M2 abduction primitive).
 
-Training/evaluation separation is a hard invariant, enforced twice:
-`covariate_correlated` samplers carry ``allowed_in_training = False``, and the
-``make_subset_sampler(..., training=True)`` factory — the only construction
-path used by the training pipeline — raises for any backend that is not
-``uniform_random``. Correlated subsets exist solely for the held-out
-functional-transfer evaluation (M7).
+Training uses the ``uniform_random`` backend, and ``make_subset_sampler``
+raises for any other.
 
 Samplers select rows from covariates/propensity only; they never see
 outcomes or effects (no target leakage). Randomness uses global ``np.random``
@@ -21,10 +17,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from subsetcate.exact import covariate_names
 
 TRAINING_ALLOWED_BACKENDS = ("uniform_random",)
-CORRELATED_STRATEGIES = ("propensity_stratum", "covariate_sign", "covariate_cell")
 
 
 def sample_log_uniform_k(k_min: int, k_max: int) -> int:
@@ -61,62 +55,6 @@ class UniformRandomSubsetSampler:
         return mask
 
 
-class CovariateCorrelatedSubsetSampler:
-    """Evaluation-only backend: subsets aligned with covariate structure.
-
-    Strategies:
-    - ``propensity_stratum``: rows in a random quartile of the exact
-      propensity (requires ``scm.analytic_spec``).
-    - ``covariate_sign``: rows with a random covariate above/below zero.
-    - ``covariate_cell``: conjunction of two independent sign splits.
-    """
-
-    allowed_in_training = False
-    backend = "covariate_correlated"
-
-    def __init__(self, strategy: str = "covariate_sign") -> None:
-        if strategy not in CORRELATED_STRATEGIES:
-            raise ValueError(
-                f"Unknown strategy {strategy!r}; choose from {CORRELATED_STRATEGIES}"
-            )
-        self.strategy = strategy
-
-    def _covariate_matrix(self, observed_df: pd.DataFrame, causal_model) -> np.ndarray:
-        spec = getattr(causal_model, "analytic_spec", None)
-        if spec is not None:
-            return observed_df[covariate_names(spec.num_covariates)].values
-        x_cols = [c for c in observed_df.columns if c.startswith("x_")]
-        if not x_cols:
-            raise ValueError("No covariate columns found for correlated subset sampling")
-        return observed_df[x_cols].values
-
-    def sample_mask(self, observed_df: pd.DataFrame, causal_model=None) -> np.ndarray:
-        X = self._covariate_matrix(observed_df, causal_model)
-        n, d = X.shape
-
-        if self.strategy == "propensity_stratum":
-            spec = getattr(causal_model, "analytic_spec", None)
-            if spec is None:
-                raise ValueError("propensity_stratum requires an SCM with analytic_spec")
-            p = spec.propensity(X)
-            lo = float(np.random.choice([0.0, 0.25, 0.5, 0.75]))
-            q_lo, q_hi = np.quantile(p, [lo, lo + 0.25])
-            mask = (p >= q_lo) & (p <= q_hi)
-        elif self.strategy == "covariate_sign":
-            j = np.random.randint(d)
-            mask = X[:, j] > 0 if np.random.rand() < 0.5 else X[:, j] <= 0
-        else:  # covariate_cell
-            j1, j2 = np.random.randint(d), np.random.randint(d)
-            s1 = X[:, j1] > 0 if np.random.rand() < 0.5 else X[:, j1] <= 0
-            s2 = X[:, j2] > 0 if np.random.rand() < 0.5 else X[:, j2] <= 0
-            mask = s1 & s2
-
-        if not mask.any():
-            mask = np.zeros(n, dtype=bool)
-            mask[np.random.randint(n)] = True
-        return np.asarray(mask, dtype=bool)
-
-
 def make_subset_sampler(backend: str, *, training: bool, **kwargs):
     """Single construction path for pipelines. Hard-rejects any backend that
     is not training-allowed when ``training=True`` — this is the invariant
@@ -128,6 +66,4 @@ def make_subset_sampler(backend: str, *, training: bool, **kwargs):
         )
     if backend == "uniform_random":
         return UniformRandomSubsetSampler(**kwargs)
-    if backend == "covariate_correlated":
-        return CovariateCorrelatedSubsetSampler(**kwargs)
     raise ValueError(f"Unknown subset backend: {backend!r}")

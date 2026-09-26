@@ -12,7 +12,7 @@ decomposed.
                           predictive distributions independently, drawing
                           separately per unit. This is CausalPFN's rule.
 
-Both subset-decode arms (route_b / CNP, route_c3 / TNP) were trained with
+The subset-decode arm (route_b / CNP) was trained with
 gate_k_min = 1 and log-uniform k, so |S| = 1 is inside the training
 distribution and Path B needs no retraining and no second head.
 
@@ -41,7 +41,6 @@ _Phi = norm.cdf
 from subsetcate.exact import make_exact_ite_query_fn, make_polynomial_prior_fn
 from subsetcate.functional_sampling import route_a_predictive_probs
 from subsetcate.histogram import histogram_quantiles
-from subsetcate.lotv import lotv_split
 from subsetcate.mdn import mdn_sample
 from subsetcate.mixture import (
     CausalMixtureDistribution,
@@ -93,7 +92,7 @@ def generate_tasks(num_tasks, n, prior_fn, standardize=True):
 @torch.no_grad()
 def head_out_for_masks(bb, x_feat, x_src, masks, device):
     """One forward per mask, identical context every time. Raw head output, so
-    the same routine serves the histogram and LOTV heads."""
+    the same routine serves the histogram and mixture heads."""
     out = []
     for s in range(0, masks.shape[0], FWD_CHUNK):
         mk = masks[s : s + FWD_CHUNK].to(device)
@@ -107,17 +106,12 @@ def head_out_for_masks(bb, x_feat, x_src, masks, device):
 
 
 def sample_rows(out_rows, mask_rows, kind, edges, ndraw, g, min_sigma):
-    """Draws [ndraw, R] for R head outputs. LOTV reads |S| off the mask
-    arithmetically, so a |S|=1 row returns the single-unit variance v. The
+    """Draws [ndraw, R] for R head outputs. The
     mixture head draws each row from its own component, so calling it on the
     k rows of a subset keeps the units independent -- which is what Path B
     is meant to assume."""
     if kind == "mixture":
         return mdn_sample(out_rows, ndraw, min_sigma)
-    if kind == "lotv":
-        mu, sigma, _, _ = lotv_split(out_rows, mask_rows, min_sigma)
-        z = torch.randn(ndraw, out_rows.shape[0], generator=g)
-        return mu.unsqueeze(0) + sigma.unsqueeze(0) * z
     probs = torch.softmax(out_rows, dim=-1)
     u = torch.rand(ndraw, probs.size(0), 1, generator=g)
     return histogram_quantiles(
@@ -164,15 +158,13 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     ckpt = torch.load(a.checkpoint, map_location=device, weights_only=False)
     cfg = ckpt["config"]
-    # route_b (CNP) and route_c3 (TNP) both decode the aggregate directly from
-    # a subset mask, so both support the two-path split unchanged.
-    # route_b/route_c3 decode the aggregate from a subset mask. route_a is
+    # route_b (CNP) decodes the aggregate from a subset mask. route_a is
     # per-unit with a latent, so its two paths are the marginal and the joint
     # over the same decodes -- the sharper form of the same contrast.
     # vanilla is per-unit only: it has no subset decode, so it has no Path A.
     # It is scored here so the unit-level arm of the n=2000 table comes from
     # the same instrument as every other cell rather than from a stored CSV.
-    assert cfg["model_variant"] in ("route_b", "route_c3", "route_a",
+    assert cfg["model_variant"] in ("route_b", "route_a",
                                     "vanilla"), cfg["model_variant"]
     is_latent = cfg["model_variant"] == "route_a"
     is_vanilla = cfg["model_variant"] == "vanilla"

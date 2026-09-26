@@ -101,23 +101,3 @@ def histogram_mean_var(
     return mean, (second - mean**2).clamp(min=0.0)
 
 
-def histogram_cdf_at(
-    probs: torch.Tensor, edges: torch.Tensor, values: torch.Tensor
-) -> torch.Tensor:
-    """CDF evaluated at ``values`` (linear within bins) — the PIT primitive.
-
-    probs: [..., nbins], values: [...]. Returns [...] in [0, 1].
-    """
-    edges = edges.to(probs.device)
-    cdf = probs.cumsum(dim=-1).clamp(max=1.0)
-    cdf_full = torch.cat([torch.zeros_like(cdf[..., :1]), cdf], dim=-1)
-
-    v = values.clamp(min=edges[0].item(), max=edges[-1].item())
-    idx = torch.searchsorted(edges, v.contiguous(), right=True).clamp(
-        min=1, max=probs.shape[-1]
-    )
-    e_lo, e_hi = edges[idx - 1], edges[idx]
-    c_lo = torch.gather(cdf_full, -1, (idx - 1).unsqueeze(-1)).squeeze(-1)
-    c_hi = torch.gather(cdf_full, -1, idx.unsqueeze(-1)).squeeze(-1)
-    frac = ((v - e_lo) / (e_hi - e_lo).clamp(min=1e-12)).clamp(0.0, 1.0)
-    return c_lo + frac * (c_hi - c_lo)

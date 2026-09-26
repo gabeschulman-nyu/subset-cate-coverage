@@ -69,23 +69,6 @@ FREE = frozenset({
 })
 
 
-def cli_args(**overrides: object) -> list[str]:
-    """Recipe as a CLI argument list. Store-true flags are emitted bare, and
-    None-valued keys are dropped so the parser default applies."""
-    cfg = dict(FROZEN)
-    cfg.update(overrides)
-    out: list[str] = []
-    for key, val in cfg.items():
-        if val is None:
-            continue
-        if isinstance(val, bool):
-            if val:
-                out.append(f"--{key}")
-            continue
-        out += [f"--{key}", str(val)]
-    return out
-
-
 def assert_matches(config: dict, *, ignore: set[str] | None = None) -> None:
     """Raise if a trained config departs from the recipe on any pinned key.
 

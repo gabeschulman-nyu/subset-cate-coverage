@@ -10,7 +10,6 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 
 from subsetcate.mixture import (
     OfflineCausalDataGenerator,
-    OfflineCausalDataModule,
     OnlineCausalDataModule,
 )
 from subsetcate.modules import CausalMetaModel, build_backbone
@@ -59,7 +58,7 @@ def run_meta_training_pipeline(
     predict_ate = query_name in ["PATE", "STATE", "GATE"]
     dim_context_features = len(observed_covariates)
 
-    if config.get("model_variant") in ("route_a", "route_c2"):
+    if config.get("model_variant") == "route_a":
         # Route A trains on per-unit exact ABDUCTED ITEs of the context rows
         # (query type context-ite); the subset mask is an inference-time
         # aggregation index only. The target fn must be the counterfactual
@@ -121,7 +120,7 @@ def run_meta_training_pipeline(
     if query_name == "GATE":
         data_keys.extend(["subset_backend", "gate_k_min", "gate_k_max"])
 
-    if config.get("model_variant") in ("route_a", "route_c2"):
+    if config.get("model_variant") == "route_a":
         # context-ite data differs from the same query_name's default type
         data_keys.append("model_variant")
 
@@ -238,16 +237,7 @@ def run_meta_training_pipeline(
                 empirical_max_len=setup_dict["empirical_max_len"],
             )
         else:
-            datamodule = OfflineCausalDataModule(
-                data_dir=base_data_dir,
-                batch_size=config["batch_size"],
-                num_workers=num_pytorch_workers,
-                empirical_data_dir=setup_dict.get("empirical_data_dir")
-                if empirical_parser_fn
-                else None,
-                empirical_parser_fn=empirical_parser_fn,
-                empirical_max_len=setup_dict.get("empirical_max_len"),
-            )
+            raise ValueError("this release trains with --online_data only")
 
     backbone = build_backbone(
         config=config,
@@ -280,17 +270,13 @@ def run_meta_training_pipeline(
     ckpt_dir = os.path.join(config["checkpoint_dir"], run_id)
     os.makedirs(ckpt_dir, exist_ok=True)
 
-    # Calibration-aware checkpoint selection (gate 2026-07-14): val/rmse is
-    # calibration-blind — the mixture head demonstrably decays dispersion
-    # while rmse holds, so rmse-selection picks miscalibrated checkpoints.
-    # Density heads select on the proper-score val/nll; ELBO arms
-    # (route_a/route_c2) and quantile/point heads keep val/rmse. Gaussian NLL
-    # is a proper score, so that head selects on val/nll too -- its earlier
-    # exclusion silently gave it calibration-blind selection.
+    # Checkpoint selection: density heads select on the proper-score val/nll,
+    # which penalizes under- and over-dispersion alike (val/rmse does not);
+    # the latent arm (route_a) selects on val/rmse.
     density_head = config.get("estimator_type") in (
-        "histogram", "mixture", "lotv", "gaussian"
+        "histogram", "mixture"
     )
-    elbo_arm = config.get("model_variant") in ("route_a", "route_c2")
+    elbo_arm = config.get("model_variant") == "route_a"
     ckpt_monitor = config.get("ckpt_monitor") or (
         "val/nll" if density_head and not elbo_arm else "val/rmse"
     )
@@ -335,18 +321,5 @@ def run_meta_training_pipeline(
             backbone=backbone,
             custom_baselines=custom_baselines,
         )
-
-    # The gaussian/quantile heads get a post-hoc conformal width rescale that
-    # no density head receives. Leaving it on makes any head comparison
-    # unfair, so it is now opt-out via config while defaulting to the previous
-    # behaviour.
-    if model.estimator_type in ["quantile", "gaussian"] and config.get(
-        "post_hoc_calibrate", True
-    ):
-        datamodule.setup(stage="test")
-        val_loader = datamodule.val_dataloader()
-        if isinstance(val_loader, list):
-            val_loader = val_loader[0]
-        model.calibrate(val_loader)
 
     return model, datamodule, trainer
