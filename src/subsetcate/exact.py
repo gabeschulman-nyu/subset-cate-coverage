@@ -351,8 +351,8 @@ def make_exact_ite_query_fn(outcome_name: str = "y", treatment_name: str = "t"):
         X = observed_data[x_cols].values
         t_obs = observed_data[treatment_name].values
         y_obs = observed_data[outcome_name].values
-        # Dispatches on the spec: additive family (noise cancels) or
-        # heteroskedastic family (ITE = tau + lam*u, abduction load-bearing).
+        # The additive family: the abducted noise cancels, so the ITE is
+        # tau(X) exactly.
         return spec.ite_from_observed(X, t_obs, y_obs)[:, np.newaxis]
 
     query_fn.exact_path = EXACT_PATH_COUNTERFACTUAL

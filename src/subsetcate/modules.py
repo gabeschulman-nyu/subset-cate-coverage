@@ -486,7 +486,7 @@ class CausalMetaModel(pl.LightningModule):
             )
             if warmup > 0:
                 # Linear LR warmup into the cosine decay — the standard cure
-                # for post-LN attention cold-start collapse (route_c3 E256).
+                # for attention models; unused by the models in this release.
                 warm = torch.optim.lr_scheduler.LinearLR(
                     optimizer, start_factor=0.01, end_factor=1.0, total_iters=warmup
                 )
