@@ -96,6 +96,13 @@ rerunning a generator on the same artifacts gives an identical image.
 | `logs/inspec/twopath_olad050_s0.json` | `experiments/two_path_ablation.py` | --tag olad050_s0 --selection effect_oracle, ckpt sweep_gauss1_s0_E128_S30000 |
 | `logs/inspec/twopath_olad050_s1.json` | `experiments/two_path_ablation.py` | --tag olad050_s1 --selection effect_oracle, ckpt sweep_gauss1_s1_E128_S30000 |
 | `logs/inspec/twopath_olad050_s2.json` | `experiments/two_path_ablation.py` | --tag olad050_s2 --selection effect_oracle, ckpt sweep_gauss1_s2_E128_S30000 |
+| `logs/cfm/final/causalpfn_paperT.json` | `experiments/cfm/eval_final.py` | --method causalpfn --paper_temperatures: CausalPFN in the heads' pass |
+| `logs/cfm/final/v2_cnp_rand_s0.json` | `experiments/cfm/eval_final.py` | --method v2_cnp_rand_s0=checkpoints/cfm/v2_cnp_rand_s0.pt, six benchmarks x 40 datasets |
+| `logs/cfm/final/v2_cnp_rand_s1.json` | `experiments/cfm/eval_final.py` | --method v2_cnp_rand_s1=checkpoints/cfm/v2_cnp_rand_s1.pt, six benchmarks x 40 datasets |
+| `logs/cfm/final/v2_cnp_rand_s2.json` | `experiments/cfm/eval_final.py` | --method v2_cnp_rand_s2=checkpoints/cfm/v2_cnp_rand_s2.pt, six benchmarks x 40 datasets |
+| `logs/cfm/final/v2_lathist_s0.json` | `experiments/cfm/eval_final.py` | --method v2_lathist_s0=checkpoints/cfm/v2_lathist_s0.pt, six benchmarks x 40 datasets |
+| `logs/cfm/final/v2_lathist_s1.json` | `experiments/cfm/eval_final.py` | --method v2_lathist_s1=checkpoints/cfm/v2_lathist_s1.pt, six benchmarks x 40 datasets |
+| `logs/cfm/final/v2_lathist_s2.json` | `experiments/cfm/eval_final.py` | --method v2_lathist_s2=checkpoints/cfm/v2_lathist_s2.pt, six benchmarks x 40 datasets |
 
 ## Reading a `twopath_` tag
 

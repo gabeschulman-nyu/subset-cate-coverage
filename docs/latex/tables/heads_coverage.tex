@@ -1,0 +1,23 @@
+\begin{table}[tp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrrr}
+\toprule
+ & \textbf{CausalPFN} & \multicolumn{2}{c}{\textbf{CNP head}} & \multicolumn{2}{c}{\textbf{latent NP head}} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+\textbf{benchmark} & \textbf{unit-level} & \textbf{unit-level} & \textbf{SCM-marg.} & \textbf{unit-level} & \textbf{SCM-marg.} \\
+\midrule
+Hill-A & 0.82 & 0.18 {\scriptsize[.12, .20]} & 0.94 {\scriptsize[.88, .97]} & 0.62 {\scriptsize[.57, .70]} & 0.92 {\scriptsize[.85, .97]} \\
+Hill-B & 0.53 & 0.30 {\scriptsize[.23, .35]} & 0.83 {\scriptsize[.78, .95]} & 0.42 {\scriptsize[.25, .57]} & 0.85 {\scriptsize[.68, .97]} \\
+Friedman & 0.70 & 0.23 {\scriptsize[.20, .25]} & 0.97 {\scriptsize[.90, 1.00]} & 0.68 {\scriptsize[.68, .70]} & 0.90 {\scriptsize[.82, .97]} \\
+Kang--Schafer & 0.30 & 0.38 {\scriptsize[.35, .42]} & 1.00 {\scriptsize[1.00, 1.00]} & 0.72 {\scriptsize[.68, .78]} & 0.98 {\scriptsize[.97, 1.00]} \\
+IHDP & 0.60 & 0.30 {\scriptsize[.20, .42]} & 0.94 {\scriptsize[.90, 1.00]} & 0.48 {\scriptsize[.47, .50]} & 0.89 {\scriptsize[.80, .95]} \\
+ACIC 2016 & 0.20 & 0.10 {\scriptsize[.07, .15]} & 0.71 {\scriptsize[.68, .72]} & 0.18 {\scriptsize[.17, .20]} & 0.78 {\scriptsize[.70, .88]} \\
+\addlinespace[2pt]
+covered, of 240 & 126 & 59 {\scriptsize[54, 68]} & 216 {\scriptsize[211, 222]} & 125 {\scriptsize[117, 131]} & 213 {\scriptsize[207, 217]} \\
+\bottomrule
+\end{tabular}
+\caption{Coverage of nominal $95\%$ intervals for the full-sample average ($k=n$) on the six benchmarks, 40 datasets each. CausalPFN's column is the full-sample column of Table~\ref{tab:legacy}. The heads' columns give the mean over three seeds, with the range of the per-seed values in brackets. Standard errors clustered by dataset are at most $0.06$ for the heads. The last row counts datasets whose full-sample interval contains the true value.}
+\label{tab:heads-coverage}
+\end{table}

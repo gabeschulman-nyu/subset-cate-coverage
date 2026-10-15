@@ -5,7 +5,11 @@ description = "Code for 'Unit-level aggregation breaks coverage in causal founda
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10,<4.0"
-authors = [{ name = "Anonymous" }]
+authors = [
+    { name="Gabe Schulman" },
+    { name="Lucius E.J. Bynum" },
+    { name="Yoav Wald" },
+]
 # Ranges here; environment.yml pins the exact versions behind the results.
 dependencies = [
     "cloudpickle>=3.1.2",

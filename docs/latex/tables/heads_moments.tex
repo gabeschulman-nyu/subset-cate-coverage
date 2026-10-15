@@ -1,0 +1,36 @@
+\begin{table}[tp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrrrrr}
+\toprule
+\textbf{benchmark} & \textbf{model} & \textbf{$m_S$} & \textbf{$\rho_S$} & \textbf{nRMSE} & \textbf{width, own} & \textbf{width, unit-level} \\
+\midrule
+Hill-A & CausalPFN & 35.13 & 0.0771 & 0.07 & --- & 0.055 \\
+ & CNP head & 2.83 & 0.2367 & 0.06 & 0.092 & 0.012 \\
+ & latent NP head & 24.19 & 0.1613 & 0.06 & 0.103 & 0.038 \\
+\addlinespace[2pt]
+Hill-B & CausalPFN & 1.42 & 0.0038 & 0.28 & --- & 0.047 \\
+ & CNP head & 0.84 & 0.0183 & 0.52 & 0.184 & 0.050 \\
+ & latent NP head & 0.97 & 0.0122 & 0.52 & 0.198 & 0.068 \\
+\addlinespace[2pt]
+Friedman & CausalPFN & 11.75 & 0.0334 & 0.10 & --- & 0.041 \\
+ & CNP head & 1.28 & 0.0618 & 0.07 & 0.076 & 0.010 \\
+ & latent NP head & 13.19 & 0.0708 & 0.07 & 0.067 & 0.033 \\
+\addlinespace[2pt]
+Kang--Schafer & CausalPFN & 1.43 & 0.0185 & 0.09 & --- & 0.013 \\
+ & CNP head & 2.85 & 0.0393 & 0.05 & 0.069 & 0.010 \\
+ & latent NP head & 13.65 & 0.0382 & 0.05 & 0.050 & 0.026 \\
+\addlinespace[2pt]
+IHDP & CausalPFN & 5.43 & 0.0420 & 0.11 & --- & 0.055 \\
+ & CNP head & 3.90 & 0.0554 & 0.20 & 0.192 & 0.040 \\
+ & latent NP head & 8.84 & 0.0942 & 0.21 & 0.221 & 0.084 \\
+\addlinespace[2pt]
+ACIC 2016 & CausalPFN & 1.63 & 0.0202 & 0.27 & --- & 0.019 \\
+ & CNP head & 0.96 & 0.0261 & 0.30 & 0.093 & 0.016 \\
+ & latent NP head & 2.46 & 0.0181 & 0.30 & 0.111 & 0.029 \\
+\bottomrule
+\end{tabular}
+\caption{Unit-level calibration, error correlation, accuracy, and interval width on the six benchmarks. $m_S$ and $\rho_S$ use the estimator of Appendix~\ref{app:protocol}, from each model's unit-level means and standard deviations (for the CNP head, the head queried with each unit alone), and nRMSE is defined as in Table~\ref{tab:legacy}. CausalPFN's $m_S$, $\rho_S$, and nRMSE are those of Table~\ref{tab:legacy}. Widths are mean widths of the full-sample interval in units of $\mathrm{sd}(y)$: \emph{own} is the head's SCM-marginalized interval, and \emph{unit-level} is unit-level aggregation from the same model. CausalPFN's width is computed with the whole sample as context, at the temperatures fitted for Table~\ref{tab:legacy}. Heads: mean over three seeds.}
+\label{tab:heads-moments}
+\end{table}
