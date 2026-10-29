@@ -1,0 +1,20 @@
+\begin{table}[tp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrrrr}
+\toprule
+\textbf{benchmark} & \textbf{$n$} & \textbf{$\rho_S$} & \textbf{$m_S$} & \textbf{nRMSE} & \textbf{cov at $k$=$n$} & \textbf{se} & \textbf{$\hat k^*$ ($\hat k^*/n$)} \\
+\midrule
+Hill-A & 1000 & 0.0771 & 35.13 & 0.07 & 0.82 & 0.06 & 502 (50\%) \\
+Friedman & 1000 & 0.0334 & 11.75 & 0.10 & 0.70 & 0.07 & 383 (38\%) \\
+IHDP & 747 & 0.0420 & 5.43 & 0.11 & 0.60 & 0.08 & 85 (11\%) \\
+Hill-B heavy-tailed & 1000 & 0.0077 & 2.03 & 0.30 & 0.53 & 0.08 & 62 (6.2\%) \\
+Hill-B & 1000 & 0.0038 & 1.42 & 0.28 & 0.53 & 0.08 & 58 (5.8\%) \\
+Kang--Schafer & 1000 & 0.0185 & 1.43 & 0.09 & 0.30 & 0.07 & 21 (2.1\%) \\
+ACIC 2016 & 4802 & 0.0202 & 1.63 & 0.27 & 0.20 & 0.06 & 30 (0.6\%) \\
+\bottomrule
+\end{tabular}
+\caption{The benchmarks of Figure~\ref{fig:benchmarks} and the heavy-tailed variant of Hill-B, which the figure omits: CausalPFN with its temperature calibration, unit-level aggregation, subsets drawn uniformly at random, 40 datasets per benchmark. $\hat k^*$ is the subset size at which observed coverage first falls below nominal, interpolated in $\log k$, with $\hat k^*/n$ as a percentage of the sample. nRMSE is the root-mean-square error of the per-unit effect estimates divided by the standard deviation of the observed outcome, within each dataset and averaged over datasets. Rows are ordered by $\hat k^*/n$.}
+\label{tab:legacy}
+\end{table}

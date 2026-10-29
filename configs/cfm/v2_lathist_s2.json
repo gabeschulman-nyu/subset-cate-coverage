@@ -1,0 +1,103 @@
+{
+  "args": {
+    "K": 16,
+    "clip": 1.0,
+    "d_range": [
+      1,
+      60
+    ],
+    "eval_every": 5000,
+    "head": "latent",
+    "hist_nbins": 64,
+    "hist_smoothing": 1.0,
+    "hist_support_max": 4.0,
+    "hist_support_min": -4.0,
+    "lam": 2.0,
+    "latent_output": "histogram",
+    "lr": 0.0003,
+    "mask_p_random": 1.0,
+    "mask_p_treated": 0.1,
+    "masks": 32,
+    "n_range": [
+      100,
+      5000
+    ],
+    "openml_pack": "data/cfm/openml_pack",
+    "openml_prob": 0.5,
+    "out_dir": "logs/cfm/v2_lathist_s2",
+    "outcome_transform_prob": 0.3,
+    "prior_preset": "v2",
+    "rows": 8192,
+    "seed": 2,
+    "steps": 250000,
+    "val_tasks": 256,
+    "width": 256,
+    "workers": 14
+  },
+  "prior_config": {
+    "activations": [
+      "tanh",
+      "relu",
+      "sin",
+      "abs",
+      "square"
+    ],
+    "alignment_prob": 0.3,
+    "base_depth_range": [
+      1,
+      4
+    ],
+    "base_noise_range": [
+      0.0,
+      0.3
+    ],
+    "base_width_range": [
+      8,
+      64
+    ],
+    "binary_outcome_prob": 0.1,
+    "d_range": [
+      1,
+      60
+    ],
+    "discrete_prob": 0.5,
+    "e_min": 0.02,
+    "heteroskedastic_prob": 0.3,
+    "imbalance_prob": 0.3,
+    "mu_depth_range": [
+      1,
+      3
+    ],
+    "mu_width": 32,
+    "n_range": [
+      100,
+      5000
+    ],
+    "noise_weights": [
+      0.6,
+      0.2,
+      0.2
+    ],
+    "openml_pack": "data/cfm/openml_pack",
+    "openml_prob": 0.5,
+    "outcome_transform_prob": 0.3,
+    "propensity_kinds": [
+      "rct",
+      "linear",
+      "mlp"
+    ],
+    "source_dist_prob": 0.3,
+    "sparse_prob": 0.3,
+    "surface_weights": [
+      0.5,
+      0.25,
+      0.25
+    ],
+    "tau_from_mu0_prob": 0.25,
+    "xi_range": [
+      0.5,
+      1.0
+    ]
+  },
+  "selected_step": 195000
+}

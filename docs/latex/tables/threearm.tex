@@ -1,0 +1,28 @@
+\begin{table}[tp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{llrrlrr}
+\toprule
+\textbf{model} & \textbf{data} & \textbf{$m_S$} & \textbf{$k_{\max}$} & \textbf{interval} & \textbf{cov, smallest $k$} & \textbf{cov, $k_{\max}$} \\
+\midrule
+CausalPFN & $s=1$, all units & 21.90 & 500 & reported & 1.00 & 0.94 \\
+ &  &  &  & rescaled & 0.91 & 0.41 \\
+ &  &  &  & $+$ design effect & 0.91 & 0.93 \\
+\addlinespace[2pt]
+CausalPFN & $s=4$, bottom 10\% & 3.63 & 44 & reported & 0.99 & 0.79 \\
+ &  &  &  & rescaled & 0.96 & 0.58 \\
+ &  &  &  & $+$ design effect & 0.96 & 0.93 \\
+\addlinespace[2pt]
+CausalPFN & IHDP & 5.43 & 747 & reported & 1.00 & 0.60 \\
+ &  &  &  & rescaled & 0.98 & 0.25 \\
+ &  &  &  & $+$ design effect & 0.98 & 0.93 \\
+\addlinespace[2pt]
+CNP (ours) & $s=1$ & 0.93 & 500 & unit-level & 0.89 & 0.23 \\
+ &  &  &  & rescaled & 0.91 & 0.24 \\
+ &  &  &  & $+$ design effect & 0.92 & 0.93 \\
+\bottomrule
+\end{tabular}
+\caption{Coverage of the three intervals of Appendix~\ref{app:correction} at the smallest and largest subset in each setting. $k_{\max}$ is the largest evaluated subset size within the pool. The \emph{$+$ design effect} interval uses $\rho_S$ and $m_S$ measured against the true effects and is not available in practice.}
+\label{tab:threearm}
+\end{table}
